@@ -1,12 +1,31 @@
+using Microsoft.Playwright;
+using Microsoft.Playwright.Xunit.v3;
+using ShopDemo.E2E.Pom.Tests.Pages;
 using ShopDemo.E2E.Shared;
 using Xunit;
 
 namespace ShopDemo.E2E.Pom.Tests;
 
 // Reuses for example LoginPage sign-in and CheckoutPage order placement across shopper and manager flows.
-public sealed class ManagerRestocksShopperOrdersTests(PomPagesFixture pomPagesFixture)
-    : ShopDemoPomPageTest(pomPagesFixture)
+public sealed class ManagerRestocksShopperOrdersTests : PageTest
 {
+    private PomPages Pages // TODO: outsource to base class, same for ContextOptions
+    {
+        get
+        {
+            field ??= new PomPages(Page);
+            return field;
+        }
+    }
+
+    public override BrowserNewContextOptions ContextOptions()
+        => new()
+        {
+            BaseURL = E2ETestSettings.BaseUrl,
+            ViewportSize = new ViewportSize { Width = 1365, Height = 900 },
+            ColorScheme = ColorScheme.Light
+        };
+
     [Fact]
     public async Task Manager_can_restock_then_review_shopper_order()
     {
