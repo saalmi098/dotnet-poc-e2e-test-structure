@@ -4,6 +4,8 @@ namespace ShopDemo.E2E.Pom.Tests.Pages;
 
 public sealed class InventoryPage(IPage page)
 {
+    public Task OpenDirectlyAsync() => page.GotoAsync("/manage/inventory");
+
     public async Task OpenAsync()
     {
         await page.GetByTestId("nav-inventory-desktop").ClickAsync();
