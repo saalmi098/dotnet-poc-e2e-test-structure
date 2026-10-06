@@ -15,7 +15,7 @@ public sealed class InventoryManagementServiceTests
             new FakeAuthService(new DemoUser("admin@test.com", "Manager", DemoRole.StoreManager)),
             catalog);
 
-        var product = await service.UpdateStockAsync("canvas-tote", 5);
+        var product = await service.UpdateStockAsync("canvas-tote", 5, TestContext.Current.CancellationToken);
 
         Assert.Equal(5, product.Stock);
     }
@@ -29,7 +29,7 @@ public sealed class InventoryManagementServiceTests
             catalog);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
-            service.UpdateStockAsync("canvas-tote", 5));
+            service.UpdateStockAsync("canvas-tote", 5, TestContext.Current.CancellationToken));
         Assert.Equal(0, catalog.UpdateCount);
     }
 
@@ -39,7 +39,7 @@ public sealed class InventoryManagementServiceTests
         var service = new InventoryManagementService(new FakeAuthService(null), new FakeInventoryCatalog());
 
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            service.UpdateStockAsync("canvas-tote", 5));
+            service.UpdateStockAsync("canvas-tote", 5, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class InventoryManagementServiceTests
             catalog);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
-            service.UpdateStockAsync("canvas-tote", -1));
+            service.UpdateStockAsync("canvas-tote", -1, TestContext.Current.CancellationToken));
         Assert.Equal(0, catalog.UpdateCount);
     }
 

@@ -4,9 +4,7 @@ public sealed class Cart
 {
     private readonly Dictionary<string, CartLine> _items = new(StringComparer.OrdinalIgnoreCase);
 
-    public IReadOnlyList<CartLine> Items => _items.Values
-        .OrderBy(item => item.Product.Name, StringComparer.OrdinalIgnoreCase)
-        .ToArray();
+    public IReadOnlyList<CartLine> Items => [.. _items.Values.OrderBy(item => item.Product.Name, StringComparer.OrdinalIgnoreCase)];
 
     public int ItemCount => _items.Values.Sum(item => item.Quantity);
 

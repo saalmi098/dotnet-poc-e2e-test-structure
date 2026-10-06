@@ -23,10 +23,9 @@ public partial class Home
         try
         {
             _products = await Catalog.GetProductsAsync();
-            _categories = _products.Select(product => product.Category)
+            _categories = [.. _products.Select(product => product.Category)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
-                .OrderBy(category => category, StringComparer.OrdinalIgnoreCase)
-                .ToArray();
+                .OrderBy(category => category, StringComparer.OrdinalIgnoreCase)];
         }
         catch (Exception exception)
         {

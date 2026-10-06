@@ -145,8 +145,8 @@ public sealed class CheckoutServiceTests
     {
         public List<Order> Orders { get; } = [];
         public IReadOnlyList<Order> GetByAccount(string accountEmail) =>
-            Orders.Where(order => order.AccountEmail == accountEmail).ToArray();
-        public IReadOnlyList<Order> GetAll() => Orders.ToArray();
+            [.. Orders.Where(order => order.AccountEmail == accountEmail)];
+        public IReadOnlyList<Order> GetAll() => [.. Orders];
         public void Add(Order order) => Orders.Add(order);
     }
 }

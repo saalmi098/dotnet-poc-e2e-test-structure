@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using ShopDemo.Application;
 using ShopDemo.Domain;
 
 namespace ShopDemo.Client.Pages;
@@ -54,9 +52,7 @@ public partial class Inventory
         try
         {
             var updatedProduct = await InventoryService.UpdateStockAsync(product.Id, _pendingStocks[product.Id]);
-            _products = _products
-                .Select(current => current.Id == updatedProduct.Id ? updatedProduct : current)
-                .ToArray();
+            _products = [.. _products.Select(current => current.Id == updatedProduct.Id ? updatedProduct : current)];
             Snackbar.Add($"{updatedProduct.Name} stock updated to {updatedProduct.Stock}.", Severity.Success);
         }
         catch (Exception exception)

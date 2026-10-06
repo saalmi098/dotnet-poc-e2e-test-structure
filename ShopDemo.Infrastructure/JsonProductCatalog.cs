@@ -1,8 +1,8 @@
+using ShopDemo.Application.Interfaces;
+using ShopDemo.Domain;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Net.Http.Json;
-using ShopDemo.Domain;
-using ShopDemo.Application.Interfaces;
 
 namespace ShopDemo.Infrastructure;
 
@@ -23,7 +23,7 @@ public sealed class JsonProductCatalog(HttpClient httpClient) : IInventoryCatalo
         await _loadLock.WaitAsync(cancellationToken);
         try
         {
-            return _products!.ToArray();
+            return [.. _products!];
         }
         finally
         {
@@ -124,7 +124,7 @@ public sealed class JsonProductCatalog(HttpClient httpClient) : IInventoryCatalo
                 }
             }
 
-            _products = products.ToList();
+            _products = [.. products];
         }
         finally
         {
