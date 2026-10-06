@@ -3,6 +3,7 @@ using Xunit;
 
 namespace ShopDemo.E2E.Pom.Tests;
 
+// Reuses for example LoginPage sign-in and CheckoutPage order placement across shopper and manager flows.
 public sealed class ManagerRestocksShopperOrdersTests(PomPagesFixture pomPagesFixture)
     : ShopDemoPomPageTest(pomPagesFixture)
 {
@@ -34,5 +35,29 @@ public sealed class ManagerRestocksShopperOrdersTests(PomPagesFixture pomPagesFi
 
         await Expect(Page.GetByTestId("login-form")).ToBeVisibleAsync();
         Assert.False(await Pages.Inventory.IsVisibleAsync());
+    }
+
+    [Fact]
+    public async Task Shopper_can_view_their_own_order_history()
+    {
+        await Pages.Login.SignInAsync(E2ETestSettings.Shopper);
+        await Pages.Catalog.OpenAsync();
+        await Pages.Catalog.AddProductToCartAsync("field-notebook");
+        await Pages.Cart.ProceedToCheckoutAsync();
+        var orderNumber = await Pages.Checkout.PlaceOrderAsync(
+            "Sample Shopper",
+            E2ETestSettings.Shopper.Email);
+
+        await Pages.Orders.OpenAsync();
+
+        Assert.True(await Pages.Orders.ContainsOrderAsync(orderNumber));
+    }
+
+    [Fact]
+    public async Task Shopper_does_not_see_inventory_management_navigation()
+    {
+        await Pages.Login.SignInAsync(E2ETestSettings.Shopper);
+
+        Assert.False(await Pages.Inventory.IsManagementNavigationVisibleAsync());
     }
 }

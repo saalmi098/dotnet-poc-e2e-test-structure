@@ -25,5 +25,6 @@ public sealed class Actor(string name)
         }
     }
 
-    public Task<T> AsksAsync<T>(IQuestion<T> question) => question.AnsweredByAsync(this);
+    public Task<T> AsksAsync<T>(IQuestion<T> question)
+        => question.AnsweredByAsync(this);
 }

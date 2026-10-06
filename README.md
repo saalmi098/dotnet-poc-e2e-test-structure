@@ -33,6 +33,11 @@ pwsh .\scripts\test-e2e.ps1
 
 To run a suite against an already-running app, set `SHOPDEMO_BASE_URL` (default `http://127.0.0.1:5178`) and run `dotnet test ShopDemo.E2E.Pom.Tests` or `dotnet test ShopDemo.E2E.Screenplay.Tests`. Each Playwright test uses a fresh browser context; the cross-role test switches users within one context so its session-only stock and orders remain available.
 
+### Reuse in the test patterns
+
+- **POM:** For example `LoginPage.SignInAsync` and `CheckoutPage.PlaceOrderAsync` are reused in multiple shopper/manager flows; each page object keeps its UI actions and selectors together.
+- **Screenplay:** For example `SignIn`, `AddProductToCart`, and `CompleteCheckout` are composed in multiple scenarios. The same `OrderIsVisible` question checks their outcomes.
+
 ## Demo login
 
 - **Shopper**

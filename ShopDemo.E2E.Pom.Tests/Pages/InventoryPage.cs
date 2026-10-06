@@ -25,4 +25,7 @@ public sealed class InventoryPage(IPage page)
     }
 
     public Task<bool> IsVisibleAsync() => page.GetByTestId("inventory-page").IsVisibleAsync();
+
+    public Task<bool> IsManagementNavigationVisibleAsync()
+        => page.GetByTestId("nav-inventory-desktop").IsVisibleAsync();
 }
