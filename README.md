@@ -23,6 +23,8 @@ The solution has independent **ShopDemo.E2E.Pom.Tests** and **ShopDemo.E2E.Scree
 
 The POM suite uses an xUnit class fixture (`PomPagesFixture`) injected into a common `ShopDemoPomPageTest` base class. Playwright's `PageTest` owns the isolated page/context lifecycle per test; after its async setup, the base test class creates one page-object graph for that test. Test bodies access `Pages.Login`, `Pages.Inventory`, and other objects without repeatedly constructing them. The fixture is a factory and never shares page-bound objects across tests. This is intentionally different from JavaScript Playwright's named fixture injection: xUnit injects class fixtures via constructors, while per-test browser resources remain managed by the .NET `PageTest`.
 
+A lazy `GetPage<T>()` alternative is documented in [`docs/pom-page-object-factory.md`](docs/pom-page-object-factory.md); it is a proposal, not the current POM implementation.
+
 Run both browser suites end-to-end from PowerShell. The script restores from public NuGet, builds the solution, installs Chromium, starts the client, waits for it to respond, runs both suites, and stops the client:
 
 ```powershell
