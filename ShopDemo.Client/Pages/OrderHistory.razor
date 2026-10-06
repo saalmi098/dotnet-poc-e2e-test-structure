@@ -1,0 +1,53 @@
+@page "/orders"
+@inject IDemoAuthService Auth
+@inject ICheckoutService Checkout
+@inject NavigationManager Navigation
+
+<PageTitle>Order history - ShopDemo</PageTitle>
+<div data-testid="orders-page">
+<MudText Typo="Typo.h4" GutterBottom="true">Order history</MudText>
+<MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4">
+    @if (Auth.CurrentUser?.Role == DemoRole.StoreManager)
+    {
+        <span>Showing all demo orders created in this browser session. This history is cleared on refresh.</span>
+    }
+    else
+    {
+        <span>Showing your orders from this browser session. This history is cleared on refresh.</span>
+    }
+</MudAlert>
+@if (Auth.CurrentUser is null)
+{
+    <MudAlert Severity="Severity.Info">Redirecting to demo login...</MudAlert>
+}
+else if (_orders.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">No orders have been placed in this session.</MudAlert>
+}
+else
+{
+    <MudExpansionPanels>
+        @foreach (var order in _orders)
+        {
+            <MudExpansionPanel data-testid="@($"order-card-{order.Number}")" @key="order.Number">
+                <TitleContent>
+                    <MudStack Row="true" Justify="Justify.SpaceBetween">
+                        <MudText><strong>@order.Number</strong> · @order.CreatedAt.ToLocalTime().ToString("g")</MudText>
+                        <MudText>@order.Total.ToString("C")</MudText>
+                    </MudStack>
+                </TitleContent>
+                <ChildContent>
+                    <MudText>Customer: @order.CustomerName (@order.CustomerEmail)</MudText>
+                    @foreach (var line in order.Items)
+                    {
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="py-1">
+                            <MudText>@line.Quantity × @line.ProductName</MudText>
+                            <MudText>@line.LineTotal.ToString("C")</MudText>
+                        </MudStack>
+                    }
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+}
+</div>

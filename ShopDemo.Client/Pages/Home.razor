@@ -1,0 +1,86 @@
+@page "/"
+@inject IProductCatalog Catalog
+@inject ICartService Cart
+@inject ISnackbar Snackbar
+@inject IDemoAuthService Auth
+
+<PageTitle>Catalog - ShopDemo</PageTitle>
+<div data-testid="catalog-page">
+<MudStack Spacing="2" Class="mb-5">
+    <MudText Typo="Typo.h4" GutterBottom="true">Browse the catalog</MudText>
+    <MudText Typo="Typo.body1" Color="Color.Secondary">A small sample shop for exploring Blazor WebAssembly.</MudText>
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudTextField @bind-Value="_searchText"
+                          data-testid="catalog-search"
+                          Label="Search products"
+                          Variant="Variant.Outlined"
+                          Immediate="true"
+                          Clearable="true" />
+        </MudItem>
+        <MudItem xs="12" sm="5">
+            <MudSelect T="string" @bind-Value="_selectedCategory" data-testid="catalog-category" Label="Category" Variant="Variant.Outlined">
+                <MudSelectItem T="string" Value="@string.Empty">All categories</MudSelectItem>
+                @foreach (var category in _categories)
+                {
+                    <MudSelectItem T="string" Value="@category">@category</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading products...</MudText></div>
+}
+else if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_error</MudAlert>
+}
+else if (!FilteredProducts.Any())
+{
+    <MudAlert Severity="Severity.Info">No products match your search.</MudAlert>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var product in FilteredProducts)
+        {
+            <MudItem xs="12" sm="6" md="4" @key="product.Id">
+                <article aria-label="@product.Name" data-testid="@($"product-card-{product.Id}")">
+                    <MudCard Class="product-card">
+                        <MudCardMedia Image="@product.ImageUrl" Height="190" />
+                        <MudCardContent>
+                            <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">@product.Category</MudChip>
+                            <MudText Typo="Typo.h6" Class="mt-2">@product.Name</MudText>
+                            <MudText Typo="Typo.body2" Class="product-description">@product.Description</MudText>
+                            <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-3">@product.Price.ToString("C")</MudText>
+                            @if (product.IsAvailable)
+                            {
+                                <MudText data-testid="@($"product-stock-{product.Id}")" Typo="Typo.caption" Color="Color.Success">@product.Stock in stock</MudText>
+                            }
+                            else
+                            {
+                                <MudChip T="string" data-testid="@($"product-stock-{product.Id}")" Size="Size.Small" Color="Color.Error">Out of stock</MudChip>
+                            }
+                        </MudCardContent>
+                        <MudCardActions Class="px-4 pb-4">
+                            <MudButton Href="@($"/products/{product.Id}")" Variant="Variant.Text" Color="Color.Primary">Details</MudButton>
+                            <MudSpacer />
+                            @if (Auth.CurrentUser?.Role != DemoRole.StoreManager)
+                            {
+                                <MudButton Disabled="@(!product.IsAvailable)"
+                                           data-testid="@($"product-add-{product.Id}")"
+                                           Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           OnClick="@(() => AddToCartAsync(product.Id))">Add to cart</MudButton>
+                            }
+                        </MudCardActions>
+                    </MudCard>
+                </article>
+            </MudItem>
+        }
+    </MudGrid>
+}
+</div>

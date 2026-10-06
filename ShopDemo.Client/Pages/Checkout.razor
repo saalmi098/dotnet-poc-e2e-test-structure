@@ -1,0 +1,70 @@
+@page "/checkout"
+@inject IDemoAuthService Auth
+@inject ICartService Cart
+@inject ICheckoutService CheckoutService
+@inject NavigationManager Navigation
+
+<PageTitle>Checkout - ShopDemo</PageTitle>
+<div data-testid="checkout-page">
+<MudText Typo="Typo.h4" GutterBottom="true">Checkout</MudText>
+@if (Auth.CurrentUser is null)
+{
+    <MudAlert Severity="Severity.Info">Redirecting to demo login...</MudAlert>
+}
+else if (_order is not null)
+{
+    <MudAlert data-testid="checkout-success" Severity="Severity.Success" Icon="@Icons.Material.Filled.CheckCircle">
+        <MudText Typo="Typo.h5">Order confirmed</MudText>
+            <MudText>Thank you, @_order.CustomerName. Your demo order number is <strong data-testid="checkout-order-number">@_order.Number</strong>.</MudText>
+        <MudText>Total: @_order.Total.ToString("C")</MudText>
+        <MudText>This is a simulated order; no payment was taken.</MudText>
+    </MudAlert>
+    <MudButton Href="/orders" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4">View order history</MudButton>
+}
+else if (Cart.Items.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">Your cart is empty. <MudLink Href="/">Browse the catalog</MudLink> first.</MudAlert>
+}
+else
+{
+    <MudGrid Spacing="4">
+        <MudItem xs="12" md="7">
+            <MudPaper data-testid="checkout-form" Class="pa-5">
+                <MudText Typo="Typo.h6" GutterBottom="true">Your details</MudText>
+                <EditForm Model="@_model" OnValidSubmit="@SubmitOrder">
+                    <DataAnnotationsValidator />
+                    <MudStack Spacing="3">
+                        <MudTextField T="string" data-testid="checkout-name" Label="Customer name" @bind-Value="_model.CustomerName" For="@(() => _model.CustomerName)" Variant="Variant.Outlined" />
+                        <MudTextField T="string" data-testid="checkout-email" Label="Email" @bind-Value="_model.Email" For="@(() => _model.Email)" Variant="Variant.Outlined" />
+                        <ValidationSummary />
+                        @if (_error is not null)
+                        {
+                            <MudAlert Severity="Severity.Error">@_error</MudAlert>
+                        }
+                        <MudButton data-testid="checkout-confirm" ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Confirm simulated order</MudButton>
+                    </MudStack>
+                </EditForm>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" md="5">
+            <MudPaper Class="pa-5">
+                <MudText Typo="Typo.h6">Order summary</MudText>
+                @foreach (var line in Cart.Items)
+                {
+                    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="py-2">
+                        <MudText>@line.Quantity × @line.Product.Name</MudText>
+                        <MudText>@line.LineTotal.ToString("C")</MudText>
+                    </MudStack>
+                }
+                <MudDivider Class="my-2" />
+                <MudStack Row="true" Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.subtitle1">Subtotal</MudText>
+                    <MudText Typo="Typo.subtitle1">@Cart.Subtotal.ToString("C")</MudText>
+                </MudStack>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">No payment provider is connected.</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+</div>
+

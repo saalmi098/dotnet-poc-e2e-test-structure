@@ -1,0 +1,59 @@
+@page "/manage/inventory"
+@inject IInventoryCatalog Catalog
+@inject IInventoryManagementService InventoryService
+@inject IDemoAuthService Auth
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<PageTitle>Manage inventory - ShopDemo</PageTitle>
+<div data-testid="inventory-page">
+<MudText Typo="Typo.h4" GutterBottom="true">Manage inventory</MudText>
+<MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
+    Update sample stock for this browser session. Changes reset when the page is refreshed.
+</MudText>
+
+@if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading inventory...</MudText></div>
+}
+else if (_error is not null)
+{
+    <MudAlert Severity="Severity.Error">@_error</MudAlert>
+}
+else
+{
+    <MudStack Spacing="3">
+        @foreach (var product in _products)
+        {
+            <section class="inventory-row pa-4" aria-label="@($"{product.Name} inventory")" data-testid="@($"inventory-item-{product.Id}")" @key="product.Id">
+                <MudGrid Spacing="2" Class="inventory-grid">
+                    <MudItem xs="12" sm="5">
+                        <MudText Typo="Typo.h6">@product.Name</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@product.Category · @product.Price.ToString("C")</MudText>
+                        <MudText data-testid="@($"inventory-current-stock-{product.Id}")" Typo="Typo.caption" Color="@(product.IsAvailable ? Color.Success : Color.Error)">
+                            @(product.IsAvailable ? $"{product.Stock} available" : "Out of stock")
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="8" sm="4">
+                        <div data-testid="@($"inventory-stock-{product.Id}")">
+                        <MudNumericField T="int"
+                                         Label="Available stock"
+                                         Min="0"
+                                         Value="@_pendingStocks[product.Id]"
+                                         ValueChanged="@(stock => SetPendingStock(product.Id, stock))"
+                                         Variant="Variant.Outlined" />
+                        </div>
+                    </MudItem>
+                    <MudItem xs="4" sm="3">
+                        <MudButton Variant="Variant.Filled"
+                                   data-testid="@($"inventory-save-{product.Id}")"
+                                   Color="Color.Primary"
+                                   Disabled="@_saving"
+                                   OnClick="@(() => SaveStockAsync(product))">Save stock</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </section>
+        }
+    </MudStack>
+}
+</div>

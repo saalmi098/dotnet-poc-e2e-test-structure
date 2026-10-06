@@ -1,0 +1,14 @@
+[
+  {
+    "email": "demo@shopdemo.local",
+    "password": "ShopDemo123!",
+    "displayName": "Demo Shopper",
+    "role": "Shopper"
+  },
+  {
+    "email": "manager@shopdemo.local",
+    "password": "ManagerDemo123!",
+    "displayName": "Demo Store Manager",
+    "role": "StoreManager"
+  }
+]

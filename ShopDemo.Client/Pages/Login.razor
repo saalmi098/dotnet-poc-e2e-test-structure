@@ -1,0 +1,43 @@
+@page "/login"
+@inject IDemoAuthService Auth
+@inject NavigationManager Navigation
+
+<PageTitle>Demo login - ShopDemo</PageTitle>
+<MudText Typo="Typo.h4" GutterBottom="true">Demo login</MudText>
+<MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mb-4">
+    This is a demonstration-only login. Credentials and login state are public client-side data, not security.
+</MudAlert>
+@if (Auth.CurrentUser is not null)
+{
+    <MudAlert Severity="Severity.Success">You are logged in as @Auth.CurrentUser.Email.</MudAlert>
+}
+else
+{
+    <MudPaper Class="pa-5 login-panel">
+        <div data-testid="login-form">
+        <EditForm Model="@_model" OnValidSubmit="@LoginAsync">
+            <DataAnnotationsValidator />
+            <MudStack Spacing="3">
+                <MudTextField T="string" data-testid="login-email" Label="Email" @bind-Value="_model.Email" For="@(() => _model.Email)" Variant="Variant.Outlined" />
+                <MudTextField T="string"
+                              data-testid="login-password"
+                              Label="Password"
+                              InputType="InputType.Password"
+                              @bind-Value="_model.Password"
+                              For="@(() => _model.Password)"
+                              Variant="Variant.Outlined" />
+                <ValidationSummary />
+                @if (_error is not null)
+                {
+                    <MudAlert data-testid="login-error" Severity="Severity.Error">@_error</MudAlert>
+                }
+                <MudButton data-testid="login-submit" ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="@_submitting">
+                    @(_submitting ? "Signing in..." : "Log in")
+                </MudButton>
+            </MudStack>
+        </EditForm>
+        </div>
+        <MudText Typo="Typo.caption" Class="mt-4">Demo credentials are listed in the README and public client configuration.</MudText>
+    </MudPaper>
+}
+

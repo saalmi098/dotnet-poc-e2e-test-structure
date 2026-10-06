@@ -1,0 +1,56 @@
+[
+  {
+    "id": "field-notebook",
+    "name": "Field Notes Notebook",
+    "description": "A durable, pocket-sized notebook with dotted pages for everyday ideas and sketches.",
+    "category": "Stationery",
+    "price": 12.50,
+    "imageUrl": "images/product-placeholder.svg",
+    "stock": 18
+  },
+  {
+    "id": "ceramic-mug",
+    "name": "Everyday Ceramic Mug",
+    "description": "A comfortable stoneware mug with a smooth glaze and a generous 350 ml capacity.",
+    "category": "Home",
+    "price": 24.00,
+    "imageUrl": "images/product-placeholder.svg",
+    "stock": 12
+  },
+  {
+    "id": "canvas-tote",
+    "name": "Market Canvas Tote",
+    "description": "A sturdy reusable cotton tote with reinforced handles for daily errands.",
+    "category": "Accessories",
+    "price": 19.95,
+    "imageUrl": "images/product-placeholder.svg",
+    "stock": 0
+  },
+  {
+    "id": "desk-lamp",
+    "name": "Adjustable Desk Lamp",
+    "description": "A compact LED lamp with a warm light setting and an adjustable neck.",
+    "category": "Home",
+    "price": 46.00,
+    "imageUrl": "images/product-placeholder.svg",
+    "stock": 6
+  },
+  {
+    "id": "steel-bottle",
+    "name": "Insulated Steel Bottle",
+    "description": "A leak-resistant stainless-steel bottle that keeps drinks cold during a long day out.",
+    "category": "Accessories",
+    "price": 32.75,
+    "imageUrl": "images/product-placeholder.svg",
+    "stock": 9
+  },
+  {
+    "id": "pencil-set",
+    "name": "Graphite Pencil Set",
+    "description": "A set of six sharpened graphite pencils in a range of grades for writing and drawing.",
+    "category": "Stationery",
+    "price": 8.00,
+    "imageUrl": "images/product-placeholder.svg",
+    "stock": 25
+  }
+]

@@ -1,0 +1,44 @@
+@page "/products/{ProductId}"
+@inject IProductCatalog Catalog
+@inject ICartService Cart
+@inject ISnackbar Snackbar
+@inject IDemoAuthService Auth
+
+<PageTitle>Product details - ShopDemo</PageTitle>
+<div data-testid="product-details">
+<MudButton Href="/" StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Text" Class="mb-3">Back to catalog</MudButton>
+@if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading product...</MudText></div>
+}
+else if (_product is null)
+{
+    <MudAlert Severity="Severity.Warning">This product could not be found.</MudAlert>
+}
+else
+{
+    <MudGrid Spacing="4">
+        <MudItem xs="12" md="6">
+            <MudCard><MudCardMedia Image="@_product.ImageUrl" Height="360" /></MudCard>
+        </MudItem>
+        <MudItem xs="12" md="6">
+            <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined">@_product.Category</MudChip>
+            <MudText Typo="Typo.h4" Class="mt-3">@_product.Name</MudText>
+            <MudText Typo="Typo.body1" Class="mt-3">@_product.Description</MudText>
+            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mt-4">@_product.Price.ToString("C")</MudText>
+            @if (_product.IsAvailable)
+            {
+                <MudText Color="Color.Success" Class="my-2">@_product.Stock available</MudText>
+                @if (Auth.CurrentUser?.Role != DemoRole.StoreManager)
+                {
+                    <MudButton data-testid="product-details-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddToCartAsync">Add to cart</MudButton>
+                }
+            }
+            else
+            {
+                <MudAlert Severity="Severity.Error" Class="my-3">This product is currently out of stock.</MudAlert>
+            }
+        </MudItem>
+    </MudGrid>
+}
+</div>

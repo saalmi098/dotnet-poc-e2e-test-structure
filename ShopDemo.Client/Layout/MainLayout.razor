@@ -1,0 +1,100 @@
+@implements IDisposable
+@inherits LayoutComponentBase
+@inject IDemoAuthService Auth
+@inject ICartService Cart
+@inject NavigationManager Navigation
+
+<MudThemeProvider />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1" Color="Color.Primary">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="@ToggleDrawer"
+                       aria-label="Open navigation" />
+        <MudText Typo="Typo.h6" Class="brand">ShopDemo</MudText>
+        <MudSpacer />
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <MudButton data-testid="nav-catalog-desktop" Href="/" Color="Color.Inherit">Catalog</MudButton>
+            <MudButton data-testid="nav-cart-desktop" Href="/cart" Color="Color.Inherit">Cart (@_cartCount)</MudButton>
+            @if (Auth.CurrentUser is null)
+            {
+                <MudButton data-testid="nav-login-desktop" Href="/login" Color="Color.Inherit">Log in</MudButton>
+            }
+            else
+            {
+                @if (Auth.CurrentUser.Role == DemoRole.StoreManager)
+                {
+                    <MudButton data-testid="nav-inventory-desktop" Href="/manage/inventory" Color="Color.Inherit">Inventory</MudButton>
+                }
+                <MudButton data-testid="nav-orders-desktop" Href="/orders" Color="Color.Inherit">Orders</MudButton>
+                <MudButton data-testid="nav-logout-desktop" OnClick="@Logout" Color="Color.Inherit">Log out</MudButton>
+            }
+        </MudHidden>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Left" Variant="DrawerVariant.Temporary">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Storefront">Catalog</MudNavLink>
+            <MudNavLink Href="/cart" Icon="@Icons.Material.Filled.ShoppingCart">Cart (@_cartCount)</MudNavLink>
+            @if (Auth.CurrentUser is null)
+            {
+                <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Log in</MudNavLink>
+            }
+            else
+            {
+                @if (Auth.CurrentUser.Role == DemoRole.StoreManager)
+                {
+                    <MudNavLink Href="/manage/inventory" Icon="@Icons.Material.Filled.Inventory">Manage inventory</MudNavLink>
+                }
+                <MudNavLink Href="/orders" Icon="@Icons.Material.Filled.ReceiptLong">Order history</MudNavLink>
+                <MudButton data-testid="nav-logout-drawer" OnClick="@Logout" StartIcon="@Icons.Material.Filled.Logout" Class="drawer-action">Log out</MudButton>
+            }
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="page-content">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen;
+    private int _cartCount;
+
+    protected override void OnInitialized()
+    {
+        Auth.AuthenticationStateChanged += OnAuthenticationStateChanged;
+        Cart.CartChanged += OnCartChanged;
+        _cartCount = Cart.ItemCount;
+    }
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    private void Logout()
+    {
+        _drawerOpen = false;
+        Auth.Logout();
+        Navigation.NavigateTo("/");
+    }
+
+    private void OnAuthenticationStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private void OnCartChanged()
+    {
+        _cartCount = Cart.ItemCount;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Auth.AuthenticationStateChanged -= OnAuthenticationStateChanged;
+        Cart.CartChanged -= OnCartChanged;
+    }
+}
