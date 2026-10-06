@@ -2,6 +2,10 @@ using Microsoft.Playwright;
 
 namespace ShopDemo.E2E.Pom.Tests.Pages;
 
+/*
+ * TODO: interface: isReady(), EnsurePageLoaded()
+ * */
+
 public sealed class InventoryPage(IPage page)
 {
     public Task OpenDirectlyAsync() => page.GotoAsync("/manage/inventory");
@@ -12,8 +16,18 @@ public sealed class InventoryPage(IPage page)
         await page.GetByTestId("inventory-page").WaitForAsync(new() { State = WaitForSelectorState.Visible });
     }
 
+    //private async Task EnsureReadyAsync(string testId)
+    //{
+    //    if (!await page.GetByTestId(testId).IsVisibleAsync())
+    //    {
+    //        await page.GetByTestId("nav-inventory-desktop").ClickAsync();
+    //        await page.GetByTestId(testId).WaitForAsync(new() { State = WaitForSelectorState.Visible });
+    //    }
+    //}
+
     public async Task UpdateStockAsync(string productId, int stock)
     {
+        // TODO: ensure page is opened
         var item = page.GetByTestId($"inventory-item-{productId}");
         await item.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         await item.GetByTestId($"inventory-stock-{productId}")
