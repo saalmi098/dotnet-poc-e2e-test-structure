@@ -1,6 +1,6 @@
 using Microsoft.Playwright;
 
-namespace ShopDemo.E2E.Screenplay.Tests.Screenplay;
+namespace ShopDemo.E2E.Screenplay.Tests.Screenplay.Abilities;
 
 public sealed class BrowseTheWeb(IPage page) : IAbility
 {

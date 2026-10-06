@@ -1,19 +1,5 @@
 namespace ShopDemo.E2E.Screenplay.Tests.Screenplay;
 
-public interface IAbility
-{
-}
-
-public interface ITask
-{
-    Task PerformAsAsync(Actor actor);
-}
-
-public interface IQuestion<T>
-{
-    Task<T> AnsweredByAsync(Actor actor);
-}
-
 public sealed class Actor(string name)
 {
     private readonly List<IAbility> _abilities = [];
@@ -27,9 +13,9 @@ public sealed class Actor(string name)
         return this;
     }
 
-    public T Ability<T>() where T : class, IAbility =>
-        _abilities.OfType<T>().SingleOrDefault()
-        ?? throw new InvalidOperationException($"{Name} does not have the {typeof(T).Name} ability.");
+    public T Ability<T>() where T : class, IAbility
+        => _abilities.OfType<T>().SingleOrDefault()
+            ?? throw new InvalidOperationException($"{Name} does not have the {typeof(T).Name} ability.");
 
     public async Task AttemptsToAsync(params ITask[] tasks)
     {

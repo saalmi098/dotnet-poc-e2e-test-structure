@@ -1,4 +1,7 @@
 using ShopDemo.E2E.Screenplay.Tests.Screenplay;
+using ShopDemo.E2E.Screenplay.Tests.Screenplay.Abilities;
+using ShopDemo.E2E.Screenplay.Tests.Screenplay.Questions;
+using ShopDemo.E2E.Screenplay.Tests.Screenplay.Tasks;
 using ShopDemo.E2E.Shared;
 using Xunit;
 
