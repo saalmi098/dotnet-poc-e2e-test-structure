@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using ShopDemo.Application;
+using ShopDemo.Application.Interfaces;
 using ShopDemo.Client;
 using ShopDemo.Infrastructure;
 

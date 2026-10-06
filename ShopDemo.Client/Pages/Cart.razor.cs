@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using ShopDemo.Application;
+using ShopDemo.Application.Interfaces;
 
 namespace ShopDemo.Client.Pages;
 

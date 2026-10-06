@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Net.Http.Json;
-using ShopDemo.Application;
 using ShopDemo.Domain;
+using ShopDemo.Application.Interfaces;
 
 namespace ShopDemo.Infrastructure;
 

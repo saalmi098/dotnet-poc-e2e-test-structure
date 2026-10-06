@@ -1,4 +1,4 @@
-using ShopDemo.Application;
+using ShopDemo.Application.Interfaces;
 using ShopDemo.Domain;
 
 namespace ShopDemo.Infrastructure;

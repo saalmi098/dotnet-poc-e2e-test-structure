@@ -1,4 +1,5 @@
 using ShopDemo.Application;
+using ShopDemo.Application.Interfaces;
 using ShopDemo.Domain;
 using Xunit;
 
