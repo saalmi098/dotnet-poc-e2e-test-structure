@@ -9,7 +9,7 @@ public sealed class CheckoutServiceTests
     [Fact]
     public void Place_order_creates_order_and_clears_cart()
     {
-        var auth = new FakeAuthService { CurrentUser = new DemoUser("demo@shopdemo.local", "Demo Shopper") };
+        var auth = new FakeAuthService { CurrentUser = new DemoUser("demo@test.com", "Demo Shopper") };
         var cart = new FakeCartService(
         [
             new CartLine(new Product
@@ -30,7 +30,7 @@ public sealed class CheckoutServiceTests
 
         Assert.StartsWith("ORD-", order.Number);
         Assert.Equal(48m, order.Total);
-        Assert.Equal("demo@shopdemo.local", order.AccountEmail);
+        Assert.Equal("demo@test.com", order.AccountEmail);
         Assert.Empty(cart.Items);
         Assert.Same(order, Assert.Single(store.Orders));
     }
@@ -47,7 +47,7 @@ public sealed class CheckoutServiceTests
     [Fact]
     public void Place_order_rejects_empty_cart()
     {
-        var auth = new FakeAuthService { CurrentUser = new DemoUser("demo@shopdemo.local", "Demo Shopper") };
+        var auth = new FakeAuthService { CurrentUser = new DemoUser("demo@test.com", "Demo Shopper") };
         var service = new CheckoutService(auth, new FakeCartService([]), new FakeOrderStore());
 
         Assert.Throws<InvalidOperationException>(() =>
@@ -59,7 +59,7 @@ public sealed class CheckoutServiceTests
     {
         var auth = new FakeAuthService
         {
-            CurrentUser = new DemoUser("manager@shopdemo.local", "Store Manager", DemoRole.StoreManager)
+            CurrentUser = new DemoUser("admin@test.com", "Store Manager", DemoRole.StoreManager)
         };
         var service = new CheckoutService(auth, new FakeCartService([]), new FakeOrderStore());
 
@@ -71,11 +71,11 @@ public sealed class CheckoutServiceTests
     public void Store_manager_can_see_all_orders_created_in_the_session()
     {
         var store = new FakeOrderStore();
-        store.Add(CreateOrder("shopper-one@shopdemo.local"));
-        store.Add(CreateOrder("shopper-two@shopdemo.local"));
+        store.Add(CreateOrder("shopper-one@test.com"));
+        store.Add(CreateOrder("shopper-two@test.com"));
         var auth = new FakeAuthService
         {
-            CurrentUser = new DemoUser("manager@shopdemo.local", "Store Manager", DemoRole.StoreManager)
+            CurrentUser = new DemoUser("admin@test.com", "Store Manager", DemoRole.StoreManager)
         };
         var service = new CheckoutService(auth, new FakeCartService([]), store);
 
@@ -86,16 +86,16 @@ public sealed class CheckoutServiceTests
     public void Shopper_only_sees_their_own_orders()
     {
         var store = new FakeOrderStore();
-        store.Add(CreateOrder("demo@shopdemo.local"));
-        store.Add(CreateOrder("another-shopper@shopdemo.local"));
+        store.Add(CreateOrder("demo@test.com"));
+        store.Add(CreateOrder("another-shopper@test.com"));
         var auth = new FakeAuthService
         {
-            CurrentUser = new DemoUser("demo@shopdemo.local", "Demo Shopper")
+            CurrentUser = new DemoUser("demo@test.com", "Demo Shopper")
         };
         var service = new CheckoutService(auth, new FakeCartService([]), store);
 
         var order = Assert.Single(service.GetOrdersForCurrentUser());
-        Assert.Equal("demo@shopdemo.local", order.AccountEmail);
+        Assert.Equal("demo@test.com", order.AccountEmail);
     }
 
     private static Order CreateOrder(string accountEmail) => new(

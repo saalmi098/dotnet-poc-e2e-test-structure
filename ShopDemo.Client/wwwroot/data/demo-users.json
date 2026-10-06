@@ -1,13 +1,13 @@
 [
   {
-    "email": "demo@shopdemo.local",
-    "password": "ShopDemo123!",
+    "email": "demo@test.com",
+    "password": "1234",
     "displayName": "Demo Shopper",
     "role": "Shopper"
   },
   {
-    "email": "manager@shopdemo.local",
-    "password": "ManagerDemo123!",
+    "email": "admin@test.com",
+    "password": "1234",
     "displayName": "Demo Store Manager",
     "role": "StoreManager"
   }

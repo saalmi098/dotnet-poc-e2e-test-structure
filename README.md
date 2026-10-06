@@ -32,11 +32,11 @@ To run a suite against an already-running app, set `SHOPDEMO_BASE_URL` (default 
 ## Demo login
 
 - **Shopper**
-  - Email: `demo@shopdemo.local`
-  - Password: `ShopDemo123!`
+  - Email: `demo@test.com`
+  - Password: `1234`
 - **Store manager**
-  - Email: `manager@shopdemo.local`
-  - Password: `ManagerDemo123!`
+  - Email: `admin@test.com`
+  - Password: `1234`
 
 The role and credentials for both accounts are defined in `ShopDemo.Client/wwwroot/data/demo-users.json`.
 

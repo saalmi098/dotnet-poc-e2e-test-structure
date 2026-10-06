@@ -11,7 +11,7 @@ public sealed class InventoryManagementServiceTests
     {
         var catalog = new FakeInventoryCatalog();
         var service = new InventoryManagementService(
-            new FakeAuthService(new DemoUser("manager@shopdemo.local", "Manager", DemoRole.StoreManager)),
+            new FakeAuthService(new DemoUser("admin@test.com", "Manager", DemoRole.StoreManager)),
             catalog);
 
         var product = await service.UpdateStockAsync("canvas-tote", 5);
@@ -24,7 +24,7 @@ public sealed class InventoryManagementServiceTests
     {
         var catalog = new FakeInventoryCatalog();
         var service = new InventoryManagementService(
-            new FakeAuthService(new DemoUser("demo@shopdemo.local", "Shopper")),
+            new FakeAuthService(new DemoUser("demo@test.com", "Shopper")),
             catalog);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(() =>
@@ -46,7 +46,7 @@ public sealed class InventoryManagementServiceTests
     {
         var catalog = new FakeInventoryCatalog();
         var service = new InventoryManagementService(
-            new FakeAuthService(new DemoUser("manager@shopdemo.local", "Manager", DemoRole.StoreManager)),
+            new FakeAuthService(new DemoUser("admin@test.com", "Manager", DemoRole.StoreManager)),
             catalog);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>

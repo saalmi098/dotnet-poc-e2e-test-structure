@@ -6,10 +6,10 @@ public static class E2ETestSettings
         Environment.GetEnvironmentVariable("SHOPDEMO_BASE_URL") ?? "https://localhost:53246/";
 
     public static DemoAccount Shopper { get; } =
-        new("demo@shopdemo.local", "ShopDemo123!");
+        new("demo@test.com", "1234");
 
     public static DemoAccount StoreManager { get; } =
-        new("manager@shopdemo.local", "ManagerDemo123!");
+        new("admin@test.com", "1234");
 
     public const string CanvasToteId = "canvas-tote";
 }
