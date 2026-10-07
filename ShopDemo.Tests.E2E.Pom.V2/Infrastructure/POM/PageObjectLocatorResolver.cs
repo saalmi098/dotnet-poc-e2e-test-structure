@@ -4,8 +4,18 @@ using System.Reflection;
 
 namespace ShopDemo.Tests.E2E.Pom.V2.Infrastructure.POM;
 
+/// <summary>
+/// Validates <see cref="LocatorMetadataAttribute"/> on page-object properties and resolves selectors to Playwright locators.
+/// </summary>
 internal static class PageObjectLocatorResolver
 {
+    /// <summary>
+    /// Returns the binding attribute for an auto-bound property, or null for an ordinary property.
+    /// </summary>
+    /// <remarks>
+    /// Auto-bound properties must be <see cref="ILocator"/> or <see cref="PageObject"/> properties
+    /// with exactly one locator metadata attribute. Invalid property or attribute combinations throw.
+    /// </remarks>
     internal static LocatorMetadataAttribute? GetBindingAttribute(Type objectType, PropertyInfo property)
     {
         var isAutoBoundProperty =
@@ -36,6 +46,13 @@ internal static class PageObjectLocatorResolver
         return attributes[0];
     }
 
+    /// <summary>
+    /// Creates a page-level or parent-scoped <see cref="ILocator"/> from its metadata attribute.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="DataTestIdAttribute"/> uses a test ID. <see cref="LocatorAttribute"/> supports
+    /// role, text, CSS, and XPath strategies.
+    /// </remarks>
     internal static ILocator Resolve(IPage page, ILocator? baseLocator, LocatorMetadataAttribute attribute)
         => attribute switch
         {

@@ -4,8 +4,16 @@ using System.Reflection;
 
 namespace ShopDemo.Tests.E2E.Pom.V2.Infrastructure.POM;
 
+/// <summary>
+/// Binds locator metadata to the <see cref="ILocator"/> and nested <see cref="PageObject"/> properties
+/// of a constructed <see cref="PageObject"/>.
+/// </summary>
 internal static class PageObjectBinder
 {
+    /// <summary>
+    /// Processes public properties, resolves their locator metadata, and waits for required locators when requested.
+    /// Nested page objects are bound recursively with their matched parent locator as the scope.
+    /// </summary>
     internal static async Task Bind(
         PageObject instance,
         IPage page,
@@ -66,6 +74,10 @@ internal static class PageObjectBinder
         }
     }
 
+    /// <summary>
+    /// Creates the Playwright <see cref="ILocator"/> declared for a property in a <see cref="PageObject"/>.
+    /// Throws if the locator cannot be resolved.
+    /// </summary>
     private static ILocator ResolveForProperty(
         IPage page,
         ILocator? baseLocator,
@@ -123,6 +135,9 @@ internal static class PageObjectBinder
         }
     }
 
+    /// <summary>
+    /// Creates the child within the matched locator scope and registers it for readiness when required.
+    /// </summary>
     private static async Task BindNestedPageObject(
         PageObject instance,
         PropertyInfo property,

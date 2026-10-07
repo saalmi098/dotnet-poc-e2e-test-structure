@@ -19,13 +19,13 @@ public sealed class ProductDetailsPage(IPage page, ILocator? baseLocator = null)
     {
         await OverviewTabLabel.ClickAsync();
         var panel = Page.GetByTestId("product-overview-panel");
-        return await Create<ProductDetailsOverviewTab>(panel);
+        return await Create<ProductDetailsOverviewTab>(panel); // return the page object for the Overview tab panel
     }
 
     public async Task<ProductDetailsInventoryTab> SwitchToInventoryTab()
     {
         await InventoryTabLabel.ClickAsync();
         var panel = Page.GetByTestId("product-inventory-panel");
-        return await Create<ProductDetailsInventoryTab>(panel);
+        return await Create<ProductDetailsInventoryTab>(panel); // return the page object for the Inventory tab panel
     }
 }
