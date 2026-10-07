@@ -14,148 +14,135 @@ internal static class PageObjectBinder
         bool waitForRequiredLocators)
     {
         var objectType = instance.GetType();
+        var properties = objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
-        foreach (var property in objectType.GetProperties(BindingFlags.Instance | BindingFlags.Public))
+        foreach (var property in properties)
         {
-            var isLocator = typeof(ILocator).IsAssignableFrom(property.PropertyType);
-            var isNestedPageObject = typeof(PageObject).IsAssignableFrom(property.PropertyType);
-            var attributes = property.GetCustomAttributes<LocatorMetadataAttribute>(inherit: true).ToArray();
-
-            if (!isLocator && !isNestedPageObject)
-            {
-                if (attributes.Length > 0)
-                {
-                    throw new PageObjectBindingException(
-                        $"{objectType.Name}.{property.Name} has a locator attribute but is not an ILocator or PageObject property.");
-                }
-
-                continue;
-            }
-
-            var attribute = LocatorAttributeValidation.GetSingleAttribute(objectType, property);
-            if (property.GetMethod is null || property.SetMethod is null)
-            {
-                throw new PageObjectBindingException(
-                    $"{objectType.Name}.{property.Name} must have a getter and setter to be auto-bound.");
-            }
-
-            ILocator locator;
-            try
-            {
-                locator = Resolve(page, baseLocator, attribute);
-            }
-            catch (Exception exception) when (exception is PlaywrightException or ArgumentException or InvalidOperationException)
-            {
-                throw new PageObjectBindingException(
-                    $"Could not resolve {objectType.Name}.{property.Name} using selector {attribute.Describe()}.",
-                    exception);
-            }
-
-            var required = attribute.Required;
-            if (required && waitForRequiredLocators)
-            {
-                try
-                {
-                    await locator.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-                }
-                catch (Exception exception) when (exception is PlaywrightException or TimeoutException)
-                {
-                    throw new PageObjectBindingException(
-                        $"Required locator for {objectType.Name}.{property.Name} was not visible. " +
-                        $"Selector: {attribute.Describe()}.",
-                        exception);
-                }
-            }
-
-            if (isLocator)
-            {
-                property.SetValue(instance, locator);
-                if (required)
-                {
-                    instance.AddRequiredLocator(locator);
-                }
-
-                continue;
-            }
-
-            var child = await factory.Create(
-                property.PropertyType,
-                page,
-                locator,
-                waitForRequiredLocators: required && waitForRequiredLocators);
-            property.SetValue(instance, child);
-            if (required)
-            {
-                instance.AddRequiredChild(child);
-            }
+            await BindProperty(instance, objectType, property, page, baseLocator, factory, waitForRequiredLocators);
         }
     }
 
-    private static ILocator Resolve(IPage page, ILocator? baseLocator, LocatorMetadataAttribute attribute)
+    private static async Task BindProperty(
+        PageObject instance,
+        Type objectType,
+        PropertyInfo property,
+        IPage page,
+        ILocator? baseLocator,
+        PageObjectFactory factory,
+        bool waitForRequiredLocators)
     {
-        if (attribute is DataTestIdAttribute testIdAttribute)
+        var attribute = PageObjectLocatorResolver.GetBindingAttribute(objectType, property);
+        if (attribute is null)
         {
-            if (string.IsNullOrWhiteSpace(testIdAttribute.TestId))
-            {
-                throw new PageObjectBindingException("A DataTestId locator cannot be empty.");
-            }
-
-            return baseLocator is null
-                ? page.GetByTestId(testIdAttribute.TestId)
-                : baseLocator.GetByTestId(testIdAttribute.TestId);
+            return;
         }
 
-        if (attribute is not LocatorAttribute locatorAttribute
-            || string.IsNullOrWhiteSpace(locatorAttribute.Selector))
+        ValidateProperty(objectType, property);
+        var locator = ResolveForProperty(page, baseLocator, objectType, property, attribute);
+        await WaitForRequiredLocator(locator, objectType, property, attribute, waitForRequiredLocators);
+
+        if (typeof(ILocator).IsAssignableFrom(property.PropertyType))
         {
-            throw new PageObjectBindingException("A Locator selector cannot be empty or unsupported.");
+            BindLocatorProperty(instance, property, locator, attribute);
+            return;
         }
 
-        switch (locatorAttribute.Kind)
+        await BindNestedPageObject(
+            instance,
+            property,
+            locator,
+            attribute,
+            page,
+            factory,
+            waitForRequiredLocators);
+    }
+
+    private static void ValidateProperty(Type objectType, PropertyInfo property)
+    {
+        if (property.GetMethod is null || property.SetMethod is null)
         {
-            case LocatorKind.Role:
-                if (!Enum.TryParse<AriaRole>(locatorAttribute.Selector, ignoreCase: true, out var role))
-                {
-                    throw new PageObjectBindingException(
-                        $"'{locatorAttribute.Selector}' is not a valid Playwright ARIA role.");
-                }
-
-                return baseLocator is null
-                    ? page.GetByRole(role, new PageGetByRoleOptions
-                    {
-                        Name = locatorAttribute.Name,
-                        Exact = locatorAttribute.Exact
-                    })
-                    : baseLocator.GetByRole(role, new LocatorGetByRoleOptions
-                    {
-                        Name = locatorAttribute.Name,
-                        Exact = locatorAttribute.Exact
-                    });
-
-            case LocatorKind.Text:
-                return baseLocator is null
-                    ? page.GetByText(locatorAttribute.Selector, new PageGetByTextOptions
-                    {
-                        Exact = locatorAttribute.Exact
-                    })
-                    : baseLocator.GetByText(locatorAttribute.Selector, new LocatorGetByTextOptions
-                    {
-                        Exact = locatorAttribute.Exact
-                    });
-
-            case LocatorKind.Css:
-                return baseLocator is null
-                    ? page.Locator($"css={locatorAttribute.Selector}")
-                    : baseLocator.Locator($"css={locatorAttribute.Selector}");
-
-            case LocatorKind.XPath:
-                return baseLocator is null
-                    ? page.Locator($"xpath={locatorAttribute.Selector}")
-                    : baseLocator.Locator($"xpath={locatorAttribute.Selector}");
-
-            default:
-                throw new PageObjectBindingException(
-                    $"Unsupported locator kind '{locatorAttribute.Kind}' on selector '{locatorAttribute.Selector}'.");
+            throw new PageObjectBindingException(
+                $"Property '{objectType.Name}.{property.Name}' must have a getter and setter to be auto-bound.");
         }
     }
+
+    private static ILocator ResolveForProperty(
+        IPage page,
+        ILocator? baseLocator,
+        Type objectType,
+        PropertyInfo property,
+        LocatorMetadataAttribute attribute)
+    {
+        try
+        {
+            return PageObjectLocatorResolver.Resolve(page, baseLocator, attribute);
+        }
+        catch (Exception exception) when (exception is PlaywrightException or ArgumentException or InvalidOperationException)
+        {
+            throw new PageObjectBindingException(
+                $"Could not resolve property '{objectType.Name}.{property.Name}' using selector {attribute.Describe()}.",
+                exception);
+        }
+    }
+
+    private static async Task WaitForRequiredLocator(
+        ILocator locator,
+        Type objectType,
+        PropertyInfo property,
+        LocatorMetadataAttribute attribute,
+        bool waitForRequiredLocators)
+    {
+        if (!attribute.Required || !waitForRequiredLocators)
+        {
+            return;
+        }
+
+        try
+        {
+            await locator.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        }
+        catch (Exception exception) when (exception is PlaywrightException or TimeoutException)
+        {
+            throw new PageObjectBindingException(
+                $"Required locator for property '{objectType.Name}.{property.Name}' was not visible. " +
+                $"Selector: {attribute.Describe()}.",
+                exception);
+        }
+    }
+
+    private static void BindLocatorProperty(
+        PageObject instance,
+        PropertyInfo property,
+        ILocator locator,
+        LocatorMetadataAttribute attribute)
+    {
+        property.SetValue(instance, locator);
+        if (attribute.Required)
+        {
+            instance.AddRequiredLocator(locator);
+        }
+    }
+
+    private static async Task BindNestedPageObject(
+        PageObject instance,
+        PropertyInfo property,
+        ILocator locator,
+        LocatorMetadataAttribute attribute,
+        IPage page,
+        PageObjectFactory factory,
+        bool waitForRequiredLocators)
+    {
+        var child = await factory.Create(
+            property.PropertyType,
+            page,
+            locator,
+            waitForRequiredLocators: attribute.Required && waitForRequiredLocators);
+
+        property.SetValue(instance, child);
+        if (attribute.Required)
+        {
+            instance.AddRequiredChild(child);
+        }
+    }
+
 }
