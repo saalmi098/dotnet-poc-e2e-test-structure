@@ -4,7 +4,7 @@
 
 Build a clean POM proof of concept in a separate `ShopDemo.Tests.E2E.Pom.V2` project. It should test an attribute-bound page-object model for both full pages and nested components, including tab objects.
 
-This file defines the design and implementation plan. It does not scaffold the project or implement the changes. Implementation will happen in a fresh context.
+This file defines the design and implementation plan and records the completed PoC below.
 
 ## Design goals
 
@@ -40,7 +40,7 @@ Every auto-bound UI property must have exactly one locator attribute: either `[D
 Support a dedicated `[DataTestId]` attribute and a generic `[Locator]` attribute. The generic attribute should cover CSS, XPath, text, and role-based Playwright locators. Keep selector strategies explicit and validate attribute/property combinations when binding. Both attributes expose a `Required` named argument that defaults to `true`; use `Required = false` for a conditional target that must not block object creation or `IsReady`.
 
 ```csharp
-public sealed class ProductOverviewTab(IPage page, ILocator? baseLocator = null)
+public sealed class ProductDetailsOverviewTab(IPage page, ILocator? baseLocator = null)
     : PageObject(page, baseLocator)
 {
     [DataTestId("product-name")]
@@ -70,7 +70,7 @@ Required properties participate in readiness and fail initialization with a clea
 
 Create a tab object only after its tab has been activated. The parent page object's (e.g. `SwitchToOverviewTab`) method clicks the existing tab control, waits for the panel, and asks the factory to create the tab object with the panel locator as `BaseLocator`. Do not add test-specific tab-switching behavior to the application.
 
-Extend `ShopDemo.Client\Pages\ProductDetails.razor` with a normal two-tab UI to exercise the pattern:
+Extend `ShopDemo.Client\POM\ProductDetails.razor` with a normal two-tab UI to exercise the pattern:
 
 - **Overview** — product name, description, category, and price.
 - **Inventory** — product ID, stock, and availability.
@@ -92,11 +92,11 @@ There is no fixed numeric threshold. The implementation should explain the choic
 A transition method performs the navigation and returns a newly created, initialized object:
 
 ```csharp
-public async Task<ProductOverviewTab> SwitchToOverviewTab()
+public async Task<ProductDetailsOverviewTab> SwitchToOverviewTab()
 {
     await OverviewTabButton.ClickAsync();
     var panel = Page.GetByTestId("product-overview-panel");
-    return await _factory.Create<ProductOverviewTab>(Page, panel);
+    return await _factory.Create<ProductDetailsOverviewTab>(Page, panel);
 }
 ```
 
@@ -144,3 +144,11 @@ Add a focused tab journey: open product details, switch to both tabs through the
 - Role variation has no fixed cutoff. Record the reason whenever the design chooses `Required = false` properties or separate derived types.
 - The new Product Details tabs are application UI added to make the POM pattern meaningful. Do not add application logic solely to help tests switch tabs.
 - Document any additional exceptions discovered during implementation, including the reason and the default rule being changed.
+
+## Implementation record
+
+The V2 project is implemented as a separate xUnit v3 project and references only `ShopDemo.Tests.E2E.Shared`; it does not reference V1 or reuse its page objects or wrapper. The reflective factory enforces the public `(IPage page, ILocator? baseLocator = null)` constructor convention. The binder supports `DataTestId` plus role, text, CSS, and XPath locators; it recursively binds nested page-object properties relative to their declared container locator. Required locators are awaited for visibility and included in `IsReady`; optional locators are still assigned but omitted from both checks. Binding failures identify the object, property, and selector.
+
+V2 uses optional locators on the shared navigation component because login, logout, orders, cart, and manager-only inventory links vary with authentication and role. The catalog link and the navigation container remain required. Product tab objects are created only after their parent clicks the corresponding normal MudBlazor tab; their fields are scoped to the visible panel. MudBlazor applies unmatched `MudTabPanel` attributes to the panel (`role=tabpanel`), not its clickable tab, so each stable tab test ID is placed on a label span rendered inside the normal tab control; the E2E test verifies that it is within a `role=tab`. The four existing journeys and a two-tab product-details journey are implemented, along with focused factory tests covering all locator strategies, nested scope, optional fields, readiness, and useful required-binding errors.
+
+The only behavior added to application UI is the planned Product Details tab presentation and stable test IDs for its controls/fields and the catalog Details link. No test-only tab switching hook was added. The label-span placement is the only implementation exception; it accommodates MudBlazor's attribute forwarding without changing the architecture's tab activation or scoping rules.

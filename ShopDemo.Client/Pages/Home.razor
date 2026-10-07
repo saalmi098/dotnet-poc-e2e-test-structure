@@ -66,7 +66,10 @@ else
                             }
                         </MudCardContent>
                         <MudCardActions Class="px-4 pb-4">
-                            <MudButton Href="@($"/products/{product.Id}")" Variant="Variant.Text" Color="Color.Primary">Details</MudButton>
+                            <MudButton Href="@($"/products/{product.Id}")"
+                                       data-testid="@($"product-details-{product.Id}")"
+                                       Variant="Variant.Text"
+                                       Color="Color.Primary">Details</MudButton>
                             <MudSpacer />
                             @if (Auth.CurrentUser?.Role != DemoRole.StoreManager)
                             {

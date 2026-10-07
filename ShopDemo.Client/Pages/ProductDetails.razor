@@ -17,28 +17,58 @@ else if (_product is null)
 }
 else
 {
-    <MudGrid Spacing="4">
-        <MudItem xs="12" md="6">
-            <MudCard><MudCardMedia Image="@_product.ImageUrl" Height="360" /></MudCard>
-        </MudItem>
-        <MudItem xs="12" md="6">
-            <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined">@_product.Category</MudChip>
-            <MudText Typo="Typo.h4" Class="mt-3">@_product.Name</MudText>
-            <MudText Typo="Typo.body1" Class="mt-3">@_product.Description</MudText>
-            <MudText Typo="Typo.h5" Color="Color.Primary" Class="mt-4">@_product.Price.ToString("C")</MudText>
-            @if (_product.IsAvailable)
-            {
-                <MudText Color="Color.Success" Class="my-2">@_product.Stock available</MudText>
-                @if (Auth.CurrentUser?.Role != DemoRole.StoreManager)
-                {
-                    <MudButton data-testid="product-details-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddToCartAsync">Add to cart</MudButton>
-                }
-            }
-            else
-            {
-                <MudAlert Severity="Severity.Error" Class="my-3">This product is currently out of stock.</MudAlert>
-            }
-        </MudItem>
-    </MudGrid>
+    <MudTabs Rounded="true" Elevation="0">
+        <MudTabPanel Text="Overview">
+            <TabContent><span data-testid="product-overview-tab">Overview</span></TabContent>
+            <ChildContent>
+                <div data-testid="product-overview-panel" class="pt-4">
+                    <MudGrid Spacing="4">
+                        <MudItem xs="12" md="6">
+                            <MudCard><MudCardMedia Image="@_product.ImageUrl" Height="360" /></MudCard>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudChip T="string" data-testid="product-overview-category" Color="Color.Secondary" Variant="Variant.Outlined">@_product.Category</MudChip>
+                            <MudText data-testid="product-overview-name" Typo="Typo.h4" Class="mt-3">@_product.Name</MudText>
+                            <MudText data-testid="product-overview-description" Typo="Typo.body1" Class="mt-3">@_product.Description</MudText>
+                            <MudText data-testid="product-overview-price" Typo="Typo.h5" Color="Color.Primary" Class="mt-4">@_product.Price.ToString("C")</MudText>
+                            @if (_product.IsAvailable)
+                            {
+                                <MudText Color="Color.Success" Class="my-2">@_product.Stock available</MudText>
+                                @if (Auth.CurrentUser?.Role != DemoRole.StoreManager)
+                                {
+                                    <MudButton data-testid="product-details-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddToCartAsync">Add to cart</MudButton>
+                                }
+                            }
+                            else
+                            {
+                                <MudAlert Severity="Severity.Error" Class="my-3">This product is currently out of stock.</MudAlert>
+                            }
+                        </MudItem>
+                    </MudGrid>
+                </div>
+            </ChildContent>
+        </MudTabPanel>
+        <MudTabPanel Text="Inventory">
+            <TabContent><span data-testid="product-inventory-tab">Inventory</span></TabContent>
+            <ChildContent>
+                <div data-testid="product-inventory-panel" class="pt-4">
+                    <MudGrid Spacing="2">
+                        <MudItem xs="12" sm="4">
+                            <MudText Typo="Typo.subtitle2">Product ID</MudText>
+                            <MudText data-testid="product-inventory-id">@_product.Id</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudText Typo="Typo.subtitle2">Stock</MudText>
+                            <MudText data-testid="product-inventory-stock">@_product.Stock</MudText>
+                        </MudItem>
+                        <MudItem xs="12" sm="4">
+                            <MudText Typo="Typo.subtitle2">Availability</MudText>
+                            <MudText data-testid="product-inventory-availability">@(_product.IsAvailable ? "Available" : "Out of stock")</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </div>
+            </ChildContent>
+        </MudTabPanel>
+    </MudTabs>
 }
 </div>

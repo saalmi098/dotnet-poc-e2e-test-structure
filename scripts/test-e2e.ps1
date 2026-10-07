@@ -8,8 +8,9 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $clientProject = Join-Path $repositoryRoot "ShopDemo.Client\ShopDemo.Client.csproj"
 $baselineProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Baseline\ShopDemo.Tests.E2E.Baseline.csproj"
 $pomProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V1\ShopDemo.Tests.E2E.Pom.V1.csproj"
+$pomV2Project = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V2\ShopDemo.Tests.E2E.Pom.V2.csproj"
 $screenplayProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Screenplay\ShopDemo.Tests.E2E.Screenplay.csproj"
-$playwrightInstaller = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V1\bin\Debug\net10.0\playwright.ps1"
+$playwrightInstaller = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V2\bin\Debug\net10.0\playwright.ps1"
 $stdoutLog = Join-Path ([System.IO.Path]::GetTempPath()) "shopdemo-e2e-$PID.out.log"
 $stderrLog = Join-Path ([System.IO.Path]::GetTempPath()) "shopdemo-e2e-$PID.err.log"
 $previousAspNetCoreUrls = $env:ASPNETCORE_URLS
@@ -72,6 +73,11 @@ try {
     & dotnet test $pomProject --no-build --no-restore
     if ($LASTEXITCODE -ne 0) {
         throw "POM E2E tests failed with exit code $LASTEXITCODE."
+    }
+
+    & dotnet test $pomV2Project --no-build --no-restore
+    if ($LASTEXITCODE -ne 0) {
+        throw "POM V2 E2E tests failed with exit code $LASTEXITCODE."
     }
 
     & dotnet test $baselineProject --no-build --no-restore

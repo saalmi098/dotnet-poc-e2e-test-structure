@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Screenpl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Baseline", "ShopDemo.Tests.E2E.Baseline\ShopDemo.Tests.E2E.Baseline.csproj", "{DF3B4DD5-E6CF-4F2D-BBA9-D531669EC713}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Pom.V2", "ShopDemo.Tests.E2E.Pom.V2\ShopDemo.Tests.E2E.Pom.V2.csproj", "{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -139,6 +141,18 @@ Global
 		{DF3B4DD5-E6CF-4F2D-BBA9-D531669EC713}.Release|x64.Build.0 = Release|Any CPU
 		{DF3B4DD5-E6CF-4F2D-BBA9-D531669EC713}.Release|x86.ActiveCfg = Release|Any CPU
 		{DF3B4DD5-E6CF-4F2D-BBA9-D531669EC713}.Release|x86.Build.0 = Release|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Debug|x64.Build.0 = Debug|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Debug|x86.Build.0 = Debug|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|Any CPU.Build.0 = Release|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|x64.ActiveCfg = Release|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|x64.Build.0 = Release|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|x86.ActiveCfg = Release|Any CPU
+		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
