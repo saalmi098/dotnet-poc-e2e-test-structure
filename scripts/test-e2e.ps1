@@ -6,6 +6,7 @@ param(
 $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $clientProject = Join-Path $repositoryRoot "ShopDemo.Client\ShopDemo.Client.csproj"
+$baselineProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Baseline\ShopDemo.Tests.E2E.Baseline.csproj"
 $pomProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V1\ShopDemo.Tests.E2E.Pom.V1.csproj"
 $screenplayProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Screenplay\ShopDemo.Tests.E2E.Screenplay.csproj"
 $playwrightInstaller = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V1\bin\Debug\net10.0\playwright.ps1"
@@ -71,6 +72,11 @@ try {
     & dotnet test $pomProject --no-build --no-restore
     if ($LASTEXITCODE -ne 0) {
         throw "POM E2E tests failed with exit code $LASTEXITCODE."
+    }
+
+    & dotnet test $baselineProject --no-build --no-restore
+    if ($LASTEXITCODE -ne 0) {
+        throw "Baseline E2E tests failed with exit code $LASTEXITCODE."
     }
 
     & dotnet test $screenplayProject --no-build --no-restore
