@@ -6,9 +6,9 @@ param(
 $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $clientProject = Join-Path $repositoryRoot "ShopDemo.Client\ShopDemo.Client.csproj"
-$pomProject = Join-Path $repositoryRoot "ShopDemo.E2E.Pom.Tests\ShopDemo.E2E.Pom.Tests.csproj"
-$screenplayProject = Join-Path $repositoryRoot "ShopDemo.E2E.Screenplay.Tests\ShopDemo.E2E.Screenplay.Tests.csproj"
-$playwrightInstaller = Join-Path $repositoryRoot "ShopDemo.E2E.Pom.Tests\bin\Debug\net10.0\playwright.ps1"
+$pomProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V1\ShopDemo.Tests.E2E.Pom.V1.csproj"
+$screenplayProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Screenplay\ShopDemo.Tests.E2E.Screenplay.csproj"
+$playwrightInstaller = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V1\bin\Debug\net10.0\playwright.ps1"
 $stdoutLog = Join-Path ([System.IO.Path]::GetTempPath()) "shopdemo-e2e-$PID.out.log"
 $stderrLog = Join-Path ([System.IO.Path]::GetTempPath()) "shopdemo-e2e-$PID.err.log"
 $previousAspNetCoreUrls = $env:ASPNETCORE_URLS

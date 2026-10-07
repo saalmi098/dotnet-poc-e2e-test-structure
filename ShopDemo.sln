@@ -12,11 +12,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Client", "ShopDemo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests", "ShopDemo.Tests\ShopDemo.Tests.csproj", "{B6ED9DC6-8233-43AC-A1B7-B98AA451687B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.E2E.Shared", "ShopDemo.E2E.Shared\ShopDemo.E2E.Shared.csproj", "{81A89908-2945-4745-BB5D-7FBFF2A30F47}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Shared", "ShopDemo.Tests.E2E.Shared\ShopDemo.Tests.E2E.Shared.csproj", "{81A89908-2945-4745-BB5D-7FBFF2A30F47}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.E2E.Pom.Tests", "ShopDemo.E2E.Pom.Tests\ShopDemo.E2E.Pom.Tests.csproj", "{89CFA2D2-85C8-4784-B781-96C07A452E37}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Pom.V1", "ShopDemo.Tests.E2E.Pom.V1\ShopDemo.Tests.E2E.Pom.V1.csproj", "{89CFA2D2-85C8-4784-B781-96C07A452E37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.E2E.Screenplay.Tests", "ShopDemo.E2E.Screenplay.Tests\ShopDemo.E2E.Screenplay.Tests.csproj", "{B4997E78-784D-47EF-B68B-8E7A603F2208}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Screenplay", "ShopDemo.Tests.E2E.Screenplay\ShopDemo.Tests.E2E.Screenplay.csproj", "{B4997E78-784D-47EF-B68B-8E7A603F2208}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

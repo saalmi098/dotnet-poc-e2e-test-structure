@@ -19,9 +19,9 @@ dotnet test ShopDemo.Tests --no-restore
 
 ## Playwright E2E suites
 
-The solution has independent **ShopDemo.E2E.Pom.Tests** and **ShopDemo.E2E.Screenplay.Tests** xUnit v3 projects using `Microsoft.Playwright.Xunit.v3` 1.63.0 and xUnit v3 3.2.2. **ShopDemo.E2E.Shared** contains only the shared Playwright `PageTest` setup, base URL, and demo test data; page objects and Screenplay actors/tasks/questions remain separate. UI controls used by E2E have stable `data-testid` values.
+The solution has independent **ShopDemo.Tests.E2E.Pom.V1** and **ShopDemo.Tests.E2E.Screenplay** xUnit v3 projects using `Microsoft.Playwright.Xunit.v3` 1.63.0 and xUnit v3 3.2.2. **ShopDemo.Tests.E2E.Shared** contains only the shared Playwright `PageTest` setup, base URL, and demo test data; page objects and Screenplay actors/tasks/questions remain separate. UI controls used by E2E have stable `data-testid` values.
 
-The POM suite uses an xUnit class fixture (`PomPagesFixture`) injected into a common `ShopDemoPomPageTest` base class. Playwright's `PageTest` owns the isolated page/context lifecycle per test; after its async setup, the base test class creates one page-object graph for that test. Test bodies access `Pages.Login`, `Pages.Inventory`, and other objects without repeatedly constructing them. The fixture is a factory and never shares page-bound objects across tests. This is intentionally different from JavaScript Playwright's named fixture injection: xUnit injects class fixtures via constructors, while per-test browser resources remain managed by the .NET `PageTest`.
+The POM suite uses `PomPageTestBase`, which inherits `ShopDemoPageTest` to reuse its browser context options and provides a lazy `Pages` property. The page-object graph is created on first access and belongs to that test's `PageTest.Page`; no page-bound objects are shared across tests.
 
 A lazy `GetPage<T>()` alternative is documented in [`docs/pom-page-object-factory.md`](docs/pom-page-object-factory.md); it is a proposal, not the current POM implementation.
 
@@ -31,7 +31,7 @@ Run both browser suites end-to-end from PowerShell. The script restores from pub
 pwsh .\scripts\test-e2e.ps1
 ```
 
-To run a suite against an already-running app, set `SHOPDEMO_BASE_URL` (default `http://127.0.0.1:5178`) and run `dotnet test ShopDemo.E2E.Pom.Tests` or `dotnet test ShopDemo.E2E.Screenplay.Tests`. Each Playwright test uses a fresh browser context; the cross-role test switches users within one context so its session-only stock and orders remain available.
+To run a suite against an already-running app, set `SHOPDEMO_BASE_URL` (default `http://127.0.0.1:5178`) and run `dotnet test ShopDemo.Tests.E2E.Pom.V1` or `dotnet test ShopDemo.Tests.E2E.Screenplay`. Each Playwright test uses a fresh browser context; the cross-role test switches users within one context so its session-only stock and orders remain available.
 
 ### Reuse in the test patterns
 
@@ -56,9 +56,9 @@ The role and credentials for both accounts are defined in `ShopDemo.Client/wwwro
 - **ShopDemo.Infrastructure** — JSON-backed product and demo-user configuration, and in-memory cart/order state.
 - **ShopDemo.Client** — standalone Blazor WebAssembly UI, routing, dependency injection, and MudBlazor components.
 - **ShopDemo.Tests** — unit tests for cart rules and checkout behavior.
-- **ShopDemo.E2E.Shared** — common Playwright test setup and demo data.
-- **ShopDemo.E2E.Pom.Tests** — page objects and POM scenarios.
-- **ShopDemo.E2E.Screenplay.Tests** — actors, abilities, tasks, questions, and matching scenarios.
+- **ShopDemo.Tests.E2E.Shared** — common Playwright test setup and demo data.
+- **ShopDemo.Tests.E2E.Pom.V1** — page objects and POM scenarios.
+- **ShopDemo.Tests.E2E.Screenplay** — actors, abilities, tasks, questions, and matching scenarios.
 
 The client loads the sample catalog from `ShopDemo.Client/wwwroot/data/products.json`; its product images use a local placeholder in `wwwroot/images`.
 
