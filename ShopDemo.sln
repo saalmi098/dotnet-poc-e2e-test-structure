@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Baseline
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Pom.V2", "ShopDemo.Tests.E2E.Pom.V2\ShopDemo.Tests.E2E.Pom.V2.csproj", "{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Pom.V3", "ShopDemo.Tests.E2E.Pom.V3\ShopDemo.Tests.E2E.Pom.V3.csproj", "{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,18 @@ Global
 		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|x64.Build.0 = Release|Any CPU
 		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|x86.ActiveCfg = Release|Any CPU
 		{227C98A6-F2EB-49D6-8BE5-24F0ECB1E698}.Release|x86.Build.0 = Release|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Debug|x64.Build.0 = Debug|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Debug|x86.Build.0 = Debug|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Release|x64.ActiveCfg = Release|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Release|x64.Build.0 = Release|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Release|x86.ActiveCfg = Release|Any CPU
+		{3AB6BFAD-315A-4109-A80F-782F5E17D9E2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
