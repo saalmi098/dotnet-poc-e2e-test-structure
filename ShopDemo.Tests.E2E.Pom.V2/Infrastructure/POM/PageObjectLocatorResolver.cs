@@ -10,6 +10,15 @@ namespace ShopDemo.Tests.E2E.Pom.V2.Infrastructure.POM;
 internal static class PageObjectLocatorResolver
 {
     /// <summary>
+    /// Defines the property types that can be auto-bound by <see cref="PageObjectBinder"/>.
+    /// </summary>
+    private static Type[] SupportedAutoBoundPropertyTypes =>
+    [
+        typeof(ILocator),
+        typeof(PageObject) // for nested page-object properties
+    ];
+
+    /// <summary>
     /// Returns the binding attribute for an auto-bound property, or null for an ordinary property.
     /// </summary>
     /// <remarks>
@@ -18,9 +27,8 @@ internal static class PageObjectLocatorResolver
     /// </remarks>
     internal static LocatorMetadataAttribute? GetBindingAttribute(Type objectType, PropertyInfo property)
     {
-        var isAutoBoundProperty =
-            typeof(ILocator).IsAssignableFrom(property.PropertyType)
-            || typeof(PageObject).IsAssignableFrom(property.PropertyType);
+        var isAutoBoundProperty = SupportedAutoBoundPropertyTypes.Any(t => t.IsAssignableFrom(property.PropertyType));
+
         var attributes = property
             .GetCustomAttributes<LocatorMetadataAttribute>(inherit: true)
             .ToArray();
@@ -47,18 +55,18 @@ internal static class PageObjectLocatorResolver
     }
 
     /// <summary>
-    /// Creates a page-level or parent-scoped <see cref="ILocator"/> from its metadata attribute.
+    /// Resolves a <see cref="LocatorMetadataAttribute"/> to a Playwright <see cref="ILocator"/>.
     /// </summary>
     /// <remarks>
-    /// <see cref="DataTestIdAttribute"/> uses a test ID. <see cref="LocatorAttribute"/> supports
-    /// role, text, CSS, and XPath strategies.
+    /// <see cref="DataTestIdAttribute"/> uses a test ID.
+    /// <see cref="LocatorAttribute"/> supports role, text, CSS, and XPath strategies.
     /// </remarks>
-    internal static ILocator Resolve(IPage page, ILocator? baseLocator, LocatorMetadataAttribute attribute)
+    internal static ILocator ResolveLocator(IPage page, ILocator? baseLocator, LocatorMetadataAttribute attribute)
         => attribute switch
         {
             DataTestIdAttribute testIdAttribute => ResolveDataTestIdAttribute(page, baseLocator, testIdAttribute),
             LocatorAttribute locatorAttribute => ResolveLocatorAttribute(page, baseLocator, locatorAttribute),
-            _ => throw new PageObjectBindingException("A Locator selector cannot be empty or unsupported.")
+            _ => throw new PageObjectBindingException($"Unsupported locator attribute type '{attribute.GetType().Name}'.")
         };
 
     private static ILocator ResolveDataTestIdAttribute(
@@ -83,7 +91,7 @@ internal static class PageObjectLocatorResolver
     {
         if (string.IsNullOrWhiteSpace(attribute.Selector))
         {
-            throw new PageObjectBindingException("A Locator selector cannot be empty or unsupported.");
+            throw new PageObjectBindingException("A Locator selector cannot be empty.");
         }
 
         return attribute.Kind switch
@@ -137,13 +145,12 @@ internal static class PageObjectLocatorResolver
         });
     }
 
-    private static ILocator ResolveByCss(IPage page, ILocator? baseLocator, string selector) =>
-        baseLocator is null
-            ? page.Locator($"css={selector}")
-            : baseLocator.Locator($"css={selector}");
+    private static ILocator ResolveByCss(IPage page, ILocator? baseLocator, string selector)
+        => ResolveBySelector(page, baseLocator, $"css={selector}");
 
-    private static ILocator ResolveByXPath(IPage page, ILocator? baseLocator, string selector) =>
-        baseLocator is null
-            ? page.Locator($"xpath={selector}")
-            : baseLocator.Locator($"xpath={selector}");
+    private static ILocator ResolveByXPath(IPage page, ILocator? baseLocator, string selector)
+        => ResolveBySelector(page, baseLocator, $"xpath={selector}");
+
+    private static ILocator ResolveBySelector(IPage page, ILocator? baseLocator, string selector)
+        => baseLocator is null ? page.Locator(selector) : baseLocator.Locator(selector);
 }

@@ -26,91 +26,63 @@ internal static class PageObjectBinder
 
         foreach (var property in properties)
         {
-            await BindProperty(instance, objectType, property, page, baseLocator, factory, waitForRequiredLocators);
+            var attribute = PageObjectLocatorResolver.GetBindingAttribute(objectType, property);
+            if (attribute is null)
+            {
+                continue;
+            }
+
+            if (property.SetMethod is null)
+            {
+                throw new PageObjectBindingException($"Property '{objectType.Name}.{property.Name}' must have a setter to be auto-bound.");
+            }
+
+            var locator = PageObjectLocatorResolver.ResolveLocator(page, baseLocator, attribute);
+            var wait = attribute.Required && waitForRequiredLocators;
+
+            if (wait)
+            {
+                await WaitUntilVisible(locator, objectType, property, attribute);
+            }
+
+            if (typeof(ILocator).IsAssignableFrom(property.PropertyType))
+            {
+                // bind locator property
+                property.SetValue(instance, locator);
+
+                if (attribute.Required)
+                {
+                    instance.AddRequiredLocator(locator);
+                }
+            }
+            else if (typeof(PageObject).IsAssignableFrom(property.PropertyType))
+            {
+                // create and bind child page object property
+                var child = await factory.Create(property.PropertyType, page, locator, wait);
+                property.SetValue(instance, child);
+
+                if (attribute.Required)
+                {
+                    instance.AddRequiredChild(child);
+                }
+            }
+            else
+            {
+                throw new PageObjectBindingException($"Property '{objectType.Name}.{property.Name}' has an unsupported type " +
+                    $"'{property.PropertyType.FullName}' for auto-binding.");
+            }
         }
     }
 
-    private static async Task BindProperty(
-        PageObject instance,
-        Type objectType,
-        PropertyInfo property,
-        IPage page,
-        ILocator? baseLocator,
-        PageObjectFactory factory,
-        bool waitForRequiredLocators)
-    {
-        var attribute = PageObjectLocatorResolver.GetBindingAttribute(objectType, property);
-        if (attribute is null)
-        {
-            return;
-        }
-
-        ValidateProperty(objectType, property);
-        var locator = ResolveForProperty(page, baseLocator, objectType, property, attribute);
-        await WaitForRequiredLocator(locator, objectType, property, attribute, waitForRequiredLocators);
-
-        if (typeof(ILocator).IsAssignableFrom(property.PropertyType))
-        {
-            BindLocatorProperty(instance, property, locator, attribute);
-            return;
-        }
-
-        await BindNestedPageObject(
-            instance,
-            property,
-            locator,
-            attribute,
-            page,
-            factory,
-            waitForRequiredLocators);
-    }
-
-    private static void ValidateProperty(Type objectType, PropertyInfo property)
-    {
-        if (property.GetMethod is null || property.SetMethod is null)
-        {
-            throw new PageObjectBindingException(
-                $"Property '{objectType.Name}.{property.Name}' must have a getter and setter to be auto-bound.");
-        }
-    }
-
-    /// <summary>
-    /// Creates the Playwright <see cref="ILocator"/> declared for a property in a <see cref="PageObject"/>.
-    /// Throws if the locator cannot be resolved.
-    /// </summary>
-    private static ILocator ResolveForProperty(
-        IPage page,
-        ILocator? baseLocator,
+    private static async Task WaitUntilVisible(
+        ILocator locator,
         Type objectType,
         PropertyInfo property,
         LocatorMetadataAttribute attribute)
     {
         try
         {
-            return PageObjectLocatorResolver.Resolve(page, baseLocator, attribute);
-        }
-        catch (Exception exception) when (exception is PlaywrightException or ArgumentException or InvalidOperationException)
-        {
-            throw new PageObjectBindingException(
-                $"Could not resolve property '{objectType.Name}.{property.Name}' using selector {attribute.Describe()}.",
-                exception);
-        }
-    }
-
-    private static async Task WaitForRequiredLocator(
-        ILocator locator,
-        Type objectType,
-        PropertyInfo property,
-        LocatorMetadataAttribute attribute,
-        bool waitForRequiredLocators)
-    {
-        if (!attribute.Required || !waitForRequiredLocators)
-        {
-            return;
-        }
-
-        try
-        {
+            // TODO: is using ToBeVisibleAsync() here better? await Assertions.Expect(locator).ToBeVisibleAsync();
             await locator.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         }
         catch (Exception exception) when (exception is PlaywrightException or TimeoutException)
@@ -121,43 +93,4 @@ internal static class PageObjectBinder
                 exception);
         }
     }
-
-    private static void BindLocatorProperty(
-        PageObject instance,
-        PropertyInfo property,
-        ILocator locator,
-        LocatorMetadataAttribute attribute)
-    {
-        property.SetValue(instance, locator);
-        if (attribute.Required)
-        {
-            instance.AddRequiredLocator(locator);
-        }
-    }
-
-    /// <summary>
-    /// Creates the child within the matched locator scope and registers it for readiness when required.
-    /// </summary>
-    private static async Task BindNestedPageObject(
-        PageObject instance,
-        PropertyInfo property,
-        ILocator locator,
-        LocatorMetadataAttribute attribute,
-        IPage page,
-        PageObjectFactory factory,
-        bool waitForRequiredLocators)
-    {
-        var child = await factory.Create(
-            property.PropertyType,
-            page,
-            locator,
-            waitForRequiredLocators: attribute.Required && waitForRequiredLocators);
-
-        property.SetValue(instance, child);
-        if (attribute.Required)
-        {
-            instance.AddRequiredChild(child);
-        }
-    }
-
 }
