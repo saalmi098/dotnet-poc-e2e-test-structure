@@ -3,16 +3,6 @@ using Microsoft.Playwright;
 namespace ShopDemo.Tests.E2E.Pom.V3.Infrastructure;
 
 /// <summary>
-/// Implemented by every top-level page/tab object so <see cref="PageComponent.Create{T}"/> can
-/// construct and wait for it uniformly. A CRTP-style static-abstract interface member stands in
-/// for V2's reflective constructor convention, fully compile-time checked, no reflection.
-/// </summary>
-public interface IPageComponent<TSelf> where TSelf : PageComponent
-{
-    static abstract TSelf CreateInstance(IPage page, ILocator? baseLocator);
-}
-
-/// <summary>
 /// Base class for page/tab objects and nested components. Required and optional locators are
 /// registered once, explicitly, in the constructor via <see cref="Require"/>/<see cref="Optional"/> —
 /// there is no reflective discovery of attributed properties.

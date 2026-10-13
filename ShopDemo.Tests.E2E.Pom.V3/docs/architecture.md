@@ -29,12 +29,12 @@ five journeys, zero reflection. Independent of V1/V2/Screenplay.
   declaration-line symmetry).
 - Required/optional registration must live in the constructor body — C# forbids calling instance
   methods from a property initializer (`CS0236`). Two places to look, not one.
+- `CreateInstance` boilerplate repeated per page object instead of centralized in one factory.
 - Scope is convention, not enforced: nothing stops a nested component from querying `page` instead
   of its own scope locator.
 - Failure messages only as good as the description string a human remembered to pass.
-- `CreateInstance` boilerplate repeated per page object instead of centralized in one factory.
 
-## Vs. V2
+## Comparison vs. V2
 
 | | V2 | V3 |
 |---|---|---|
