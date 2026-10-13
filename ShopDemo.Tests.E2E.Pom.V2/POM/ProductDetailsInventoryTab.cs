@@ -14,4 +14,10 @@ public sealed class ProductDetailsInventoryTab(IPage page, ILocator? baseLocator
 
     [DataTestId("product-inventory-availability")]
     public ILocator Availability { get; private set; } = null!;
+
+    [DataTestId("product-inventory-grid")]
+    public ILocator Grid { get; private set; } = null!;
+
+    [DataTestId("product-inventory-pager")]
+    public ILocator Pager { get; private set; } = null!;
 }

@@ -17,7 +17,10 @@ else if (_product is null)
 }
 else
 {
-    <MudTabs Rounded="true" Elevation="0">
+    <MudTabs Rounded="true"
+             Elevation="0"
+             ActivePanelIndex="@_activePanelIndex"
+             ActivePanelIndexChanged="@OnActivePanelIndexChanged">
         <MudTabPanel Text="Overview">
             <TabContent><span data-testid="product-overview-tab">Overview</span></TabContent>
             <ChildContent>
@@ -52,20 +55,66 @@ else
             <TabContent><span data-testid="product-inventory-tab">Inventory</span></TabContent>
             <ChildContent>
                 <div data-testid="product-inventory-panel" class="pt-4">
-                    <MudGrid Spacing="2">
-                        <MudItem xs="12" sm="4">
-                            <MudText Typo="Typo.subtitle2">Product ID</MudText>
-                            <MudText data-testid="product-inventory-id">@_product.Id</MudText>
-                        </MudItem>
-                        <MudItem xs="12" sm="4">
-                            <MudText Typo="Typo.subtitle2">Stock</MudText>
-                            <MudText data-testid="product-inventory-stock">@_product.Stock</MudText>
-                        </MudItem>
-                        <MudItem xs="12" sm="4">
-                            <MudText Typo="Typo.subtitle2">Availability</MudText>
-                            <MudText data-testid="product-inventory-availability">@(_product.IsAvailable ? "Available" : "Out of stock")</MudText>
-                        </MudItem>
-                    </MudGrid>
+                    @if (_inventoryLoading)
+                    {
+                        <div class="loading-state" role="status" aria-live="polite" data-testid="product-inventory-loading">
+                            <MudProgressCircular Indeterminate="true" Color="Color.Primary" />
+                            <MudText>Loading inventory details...</MudText>
+                        </div>
+                    }
+                    else if (_inventoryLoadError is not null)
+                    {
+                        <MudAlert Severity="Severity.Error">@_inventoryLoadError</MudAlert>
+                    }
+                    else
+                    {
+                        <div data-testid="product-inventory-grid">
+                            <MudDataGrid T="InventoryGridRow"
+                                         Items="@_inventoryRows"
+                                         Filterable="true"
+                                         FilterMode="DataGridFilterMode.ColumnFilterMenu"
+                                         RowsPerPage="10"
+                                         Dense="true"
+                                         Hover="true"
+                                         Striped="true">
+                                <Columns>
+                                    <PropertyColumn Property="row => row.Sequence" Title="#">
+                                        <CellTemplate Context="cell">
+                                            <MudText data-testid="@($"product-inventory-row-{cell.Item.Sequence}")">
+                                                @cell.Item.Sequence
+                                            </MudText>
+                                        </CellTemplate>
+                                    </PropertyColumn>
+                                    <PropertyColumn Property="row => row.ProductId" Title="Product ID">
+                                        <CellTemplate Context="cell">
+                                            <MudText data-testid="@(GetInventoryCellTestId("product-inventory-id", cell.Item.Sequence))">
+                                                @cell.Item.ProductId
+                                            </MudText>
+                                        </CellTemplate>
+                                    </PropertyColumn>
+                                    <PropertyColumn Property="row => row.Stock" Title="Stock">
+                                        <CellTemplate Context="cell">
+                                            <MudText data-testid="@(GetInventoryCellTestId("product-inventory-stock", cell.Item.Sequence))">
+                                                @cell.Item.Stock
+                                            </MudText>
+                                        </CellTemplate>
+                                    </PropertyColumn>
+                                    <PropertyColumn Property="row => row.Availability" Title="Availability">
+                                        <CellTemplate Context="cell">
+                                            <MudText data-testid="@(GetInventoryCellTestId("product-inventory-availability", cell.Item.Sequence))">
+                                                @cell.Item.Availability
+                                            </MudText>
+                                        </CellTemplate>
+                                    </PropertyColumn>
+                                </Columns>
+                                <PagerContent>
+                                    <div data-testid="product-inventory-pager">
+                                        <MudDataGridPager T="InventoryGridRow" />
+                                    </div>
+                                </PagerContent>
+                            </MudDataGrid>
+                        </div>
+                    }
                 </div>
             </ChildContent>
         </MudTabPanel>

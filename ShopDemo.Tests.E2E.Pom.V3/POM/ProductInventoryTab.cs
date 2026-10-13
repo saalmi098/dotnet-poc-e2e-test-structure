@@ -12,12 +12,16 @@ public sealed class ProductDetailsInventoryTab : PageComponent, IPageComponent<P
     public Required<ILocator> ProductId { get; }
     public Required<ILocator> Stock { get; }
     public Required<ILocator> Availability { get; }
+    public Required<ILocator> Grid { get; }
+    public Required<ILocator> Pager { get; }
 
     private ProductDetailsInventoryTab(ILocator panel)
     {
         ProductId = Require(panel.GetByTestId("product-inventory-id"), $"{nameof(ProductDetailsInventoryTab)}.{nameof(ProductId)}");
         Stock = Require(panel.GetByTestId("product-inventory-stock"), $"{nameof(ProductDetailsInventoryTab)}.{nameof(Stock)}");
         Availability = Require(panel.GetByTestId("product-inventory-availability"), $"{nameof(ProductDetailsInventoryTab)}.{nameof(Availability)}");
+        Grid = Require(panel.GetByTestId("product-inventory-grid"), $"{nameof(ProductDetailsInventoryTab)}.{nameof(Grid)}");
+        Pager = Require(panel.GetByTestId("product-inventory-pager"), $"{nameof(ProductDetailsInventoryTab)}.{nameof(Pager)}");
     }
 
     static ProductDetailsInventoryTab IPageComponent<ProductDetailsInventoryTab>.CreateInstance(IPage page, ILocator? baseLocator) =>

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Microsoft.Playwright;
 using ShopDemo.Tests.E2E.Pom.V3.Infrastructure;
 using ShopDemo.Tests.E2E.Pom.V3.POM;
 using ShopDemo.Tests.E2E.Shared;
@@ -91,10 +93,20 @@ public sealed class PomJourneysTests : ShopDemoPageTest
         Assert.False(string.IsNullOrWhiteSpace(await overview.Price.Value.InnerTextAsync()));
         Assert.True(await overview.IsReady());
 
-        var inventory = await product.SwitchToInventoryTab();
+        var inventoryLoad = Stopwatch.StartNew();
+        var inventoryTask = product.SwitchToInventoryTab();
+        await Page.GetByTestId("product-inventory-loading")
+            .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        var inventory = await inventoryTask;
+        Assert.True(
+            inventoryLoad.Elapsed >= TimeSpan.FromSeconds(4.5),
+            $"Inventory loaded too quickly: {inventoryLoad.Elapsed}.");
+
         Assert.Equal(E2ETestSettings.CanvasToteId, await inventory.ProductId.Value.InnerTextAsync());
         Assert.Equal("0", await inventory.Stock.Value.InnerTextAsync());
         Assert.Equal("Out of stock", await inventory.Availability.Value.InnerTextAsync());
+        Assert.Equal(10, await inventory.Grid.Value.Locator("[data-testid^='product-inventory-row-']").CountAsync());
+        Assert.True(await inventory.Pager.Value.IsVisibleAsync());
         Assert.True(await inventory.IsReady());
     }
 
