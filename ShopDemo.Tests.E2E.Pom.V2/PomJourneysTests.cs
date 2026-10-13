@@ -1,12 +1,12 @@
-using System.Diagnostics;
 using ShopDemo.Tests.E2E.Pom.V2.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Pom.V2.POM;
 using ShopDemo.Tests.E2E.Shared;
+using System.Diagnostics;
 using Xunit;
 
 namespace ShopDemo.Tests.E2E.Pom.V2;
 
-public sealed class PomJourneysTests : ShopDemoPageTest
+public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTest
 {
     private readonly PageObjectFactory _factory = new();
 
@@ -94,11 +94,18 @@ public sealed class PomJourneysTests : ShopDemoPageTest
         Assert.False(string.IsNullOrWhiteSpace(await overview.Price.InnerTextAsync()));
         Assert.True(await overview.IsReady());
 
+        Log("Starting Inventory tab activation and page-object binding.");
+
         var inventoryLoad = Stopwatch.StartNew();
         var inventoryTask = product.SwitchToInventoryTab();
         await Page.GetByTestId("product-inventory-loading")
             .WaitForAsync(new() { State = Microsoft.Playwright.WaitForSelectorState.Visible });
+
+        Log($"Loading indicator is visible after {inventoryLoad.Elapsed}; inventory page-object task completed: {inventoryTask.IsCompleted}.");
+
         var inventory = await inventoryTask;
+        Log($"Inventory page object is ready after {inventoryLoad.Elapsed}.");
+
         Assert.True(
             inventoryLoad.Elapsed >= TimeSpan.FromSeconds(4.5),
             $"Inventory loaded too quickly: {inventoryLoad.Elapsed}.");
@@ -117,5 +124,10 @@ public sealed class PomJourneysTests : ShopDemoPageTest
         var navigation = await _factory.Create<ShopNavigation>(Page);
         var login = await navigation.Bar.OpenLogin();
         return await login.SignIn(account);
+    }
+
+    private void Log(string message)
+    {
+        E2ETrace.Write(typeof(PomJourneysTests), message, output.WriteLine);
     }
 }

@@ -1,4 +1,6 @@
+using System.Diagnostics;
 using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Shared;
 
 namespace ShopDemo.Tests.E2E.Pom.V3.Infrastructure;
 
@@ -54,14 +56,20 @@ public abstract class PageComponent
     {
         foreach (var (locator, description) in _required)
         {
+            var locatorName = description ?? GetType().Name;
+            var waitDuration = Stopwatch.StartNew();
+            E2ETrace.Write(GetType(), $"Waiting for required locator '{locatorName}'.");
             try
             {
                 await locator.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+                E2ETrace.Write(
+                    GetType(),
+                    $"Required locator '{locatorName}' is visible after {waitDuration.Elapsed}.");
             }
             catch (Exception exception) when (exception is PlaywrightException or TimeoutException)
             {
                 throw new PageComponentNotReadyException(
-                    $"Required locator '{description ?? GetType().Name}' was not visible.",
+                    $"Required locator '{locatorName}' was not visible.",
                     exception);
             }
         }

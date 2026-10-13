@@ -1,5 +1,6 @@
 using Microsoft.Playwright;
 using ShopDemo.Tests.E2E.Pom.V3.Infrastructure;
+using ShopDemo.Tests.E2E.Shared;
 
 namespace ShopDemo.Tests.E2E.Pom.V3.POM;
 
@@ -23,15 +24,31 @@ public sealed class ProductDetailsPage : PageComponent, IPageComponent<ProductDe
 
     public async Task<ProductDetailsOverviewTab> SwitchToOverviewTab()
     {
+        E2ETrace.Write(typeof(ProductDetailsPage), "Clicking Overview tab.");
+
         await OverviewTabLabel.Value.ClickAsync();
         var panel = _page.GetByTestId("product-overview-panel");
-        return await Create<ProductDetailsOverviewTab>(_page, panel);
+
+        E2ETrace.Write(typeof(ProductDetailsPage), "Creating the scoped Overview tab page object.");
+        var overview = await Create<ProductDetailsOverviewTab>(_page, panel);
+
+        E2ETrace.Write(typeof(ProductDetailsPage), "Overview tab page object is ready.");
+        return overview;
     }
 
     public async Task<ProductDetailsInventoryTab> SwitchToInventoryTab()
     {
+        E2ETrace.Write(typeof(ProductDetailsPage), "Clicking Inventory tab.");
+
         await InventoryTabLabel.Value.ClickAsync();
         var panel = _page.GetByTestId("product-inventory-panel");
-        return await Create<ProductDetailsInventoryTab>(_page, panel);
+
+        E2ETrace.Write(
+            typeof(ProductDetailsPage),
+            "Creating the scoped Inventory tab page object; required locators may wait for loaded data.");
+        var inventory = await Create<ProductDetailsInventoryTab>(_page, panel);
+
+        E2ETrace.Write(typeof(ProductDetailsPage), "Inventory tab page object is ready.");
+        return inventory;
     }
 }

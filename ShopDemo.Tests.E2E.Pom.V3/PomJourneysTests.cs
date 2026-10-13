@@ -9,6 +9,10 @@ namespace ShopDemo.Tests.E2E.Pom.V3;
 
 public sealed class PomJourneysTests : ShopDemoPageTest
 {
+    private readonly ITestOutputHelper _output;
+
+    public PomJourneysTests(ITestOutputHelper output) => _output = output;
+
     [Fact]
     public async Task Manager_can_restock_then_review_shopper_order()
     {
@@ -94,10 +98,14 @@ public sealed class PomJourneysTests : ShopDemoPageTest
         Assert.True(await overview.IsReady());
 
         var inventoryLoad = Stopwatch.StartNew();
+        Log("Starting Inventory tab activation and page-object binding.");
         var inventoryTask = product.SwitchToInventoryTab();
         await Page.GetByTestId("product-inventory-loading")
             .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        Log(
+            $"Loading indicator is visible after {inventoryLoad.Elapsed}; inventory page-object task completed: {inventoryTask.IsCompleted}.");
         var inventory = await inventoryTask;
+        Log($"Inventory page object is ready after {inventoryLoad.Elapsed}.");
         Assert.True(
             inventoryLoad.Elapsed >= TimeSpan.FromSeconds(4.5),
             $"Inventory loaded too quickly: {inventoryLoad.Elapsed}.");
@@ -116,5 +124,10 @@ public sealed class PomJourneysTests : ShopDemoPageTest
         var navigation = await PageComponent.Create<ShopNavigation>(Page);
         var login = await navigation.Bar.OpenLogin();
         return await login.SignIn(account);
+    }
+
+    private void Log(string message)
+    {
+        E2ETrace.Write(typeof(PomJourneysTests), message, _output.WriteLine);
     }
 }

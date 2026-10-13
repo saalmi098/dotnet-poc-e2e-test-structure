@@ -1,5 +1,7 @@
 using Microsoft.Playwright;
 using ShopDemo.Tests.E2E.Pom.V2.Infrastructure.Locators;
+using ShopDemo.Tests.E2E.Shared;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace ShopDemo.Tests.E2E.Pom.V2.Infrastructure.POM;
@@ -42,7 +44,15 @@ internal static class PageObjectBinder
 
             if (wait)
             {
+                var waitDuration = Stopwatch.StartNew();
+                E2ETrace.Write(
+                    typeof(PageObjectBinder),
+                    $"Waiting for required locator '{objectType.Name}.{property.Name}' ({attribute.Describe()}).");
+
                 await WaitUntilVisible(locator, objectType, property, attribute);
+                E2ETrace.Write(
+                    typeof(PageObjectBinder),
+                    $"Required locator '{objectType.Name}.{property.Name}' is visible after {waitDuration.Elapsed}.");
             }
 
             if (typeof(ILocator).IsAssignableFrom(property.PropertyType))
