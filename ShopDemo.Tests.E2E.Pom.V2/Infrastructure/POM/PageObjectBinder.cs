@@ -82,7 +82,6 @@ internal static class PageObjectBinder
     {
         try
         {
-            // TODO: is using ToBeVisibleAsync() here better? await Assertions.Expect(locator).ToBeVisibleAsync();
             await locator.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         }
         catch (Exception exception) when (exception is PlaywrightException or TimeoutException)

@@ -36,10 +36,9 @@ public abstract class PageObject(IPage page, ILocator? baseLocator = null)
     /// </summary>
     public async Task<bool> IsReady()
     {
-        // TODO: check if the page is awaited to be ready when the page object is created (i.e. when the test navigates to the page)
         foreach (var locator in _requiredLocators)
         {
-            if (!await locator.IsVisibleAsync()) // TODO: is using this better here? .WaitForAsync(new() { State = WaitForSelectorState.Visible });
+            if (!await locator.IsVisibleAsync())
             {
                 return false;
             }
