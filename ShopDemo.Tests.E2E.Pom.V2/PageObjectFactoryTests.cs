@@ -46,6 +46,17 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
     }
 
     [Fact]
+    public async Task Properties_without_a_locator_attribute_are_not_bound()
+    {
+        await Page.SetContentAsync("<main></main>");
+
+        var probe = await new PageObjectFactory().Create<UnattributedProbe>(Page);
+
+        Assert.Null(probe.Unbound);
+        Assert.Null(probe.UnboundChild);
+    }
+
+    [Fact]
     public async Task Factory_rejects_unsupported_constructor_conventions()
     {
         var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
@@ -77,6 +88,13 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
 
         [DataTestId("optional-probe", Required = false)]
         public ILocator Optional { get; private set; } = null!;
+    }
+
+    private sealed class UnattributedProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    {
+        public ILocator? Unbound { get; private set; }
+
+        public LocatorProbeContent? UnboundChild { get; private set; }
     }
 
     private sealed class MissingRequiredProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)

@@ -28,7 +28,7 @@ flowchart LR
     P --> L["Attributed ILocator properties"]
 ```
 
-Each auto-bound `ILocator` or nested `PageObject` property has exactly one `[DataTestId]` or `[Locator]` attribute. `[DataTestId("catalog-page")]` selects by test ID. `[Locator]` supports role, text, CSS, and XPath selectors. For example, `ShopNavigation.Bar` uses `[Locator(LocatorKind.Css, ".mud-appbar")]`; the locator strategy test exercises all four generic strategies.
+Each auto-bound `ILocator` or nested `PageObject` property has exactly one `[DataTestId]` or `[Locator]` attribute. Binding is attribute-only: properties without such an attribute are ignored and keep their default value. `[DataTestId("catalog-page")]` selects by test ID. `[Locator]` supports role, text, CSS, and XPath selectors. For example, `ShopNavigation.Bar` uses `[Locator(LocatorKind.Css, ".mud-appbar")]`; the locator strategy test exercises all four generic strategies.
 
 Locators are required by default. The binder waits for required locators to become visible before returning the object. A missing or hidden required locator raises `PageObjectBindingException` with the object, property, and selector. `Required = false` still assigns the locator, but skips its initial visibility wait and excludes it or its nested object from the parent's `IsReady()` requirements. A nested object's own `IsReady()` can still be called separately.
 

@@ -19,11 +19,12 @@ internal static class PageObjectLocatorResolver
     ];
 
     /// <summary>
-    /// Returns the binding attribute for an auto-bound property, or null for an ordinary property.
+    /// Returns the binding attribute for an auto-bound property, or null for a property without one.
     /// </summary>
     /// <remarks>
-    /// Auto-bound properties must be <see cref="ILocator"/> or <see cref="PageObject"/> properties
-    /// with exactly one locator metadata attribute. Invalid property or attribute combinations throw.
+    /// Only properties carrying a locator metadata attribute are bound; all others are ignored and keep their
+    /// default value. A bound property must be an <see cref="ILocator"/> or <see cref="PageObject"/> property
+    /// with exactly one such attribute. Invalid property or attribute combinations throw.
     /// </remarks>
     internal static LocatorMetadataAttribute? GetBindingAttribute(Type objectType, PropertyInfo property)
     {
@@ -44,10 +45,15 @@ internal static class PageObjectLocatorResolver
             return null;
         }
 
-        if (attributes.Length != 1)
+        if (attributes.Length == 0)
+        {
+            return null;
+        }
+
+        if (attributes.Length > 1)
         {
             throw new PageObjectBindingException(
-                $"Property '{objectType.Name}.{property.Name}' must have exactly one '{nameof(LocatorMetadataAttribute)}' attribute! " +
+                $"Property '{objectType.Name}.{property.Name}' must have at most one '{nameof(LocatorMetadataAttribute)}' attribute! " +
                 $"Found {attributes.Length}.");
         }
 
