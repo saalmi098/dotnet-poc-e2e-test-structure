@@ -11,6 +11,7 @@ namespace ShopDemo.Tests.E2E.Pom.V2.Infrastructure.Locators;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class LocatorAttribute(LocatorKind kind, string selector) : LocatorMetadataAttribute(true)
 {
+    // TODO: combine DataTestIdAttribute and LocatorAttribute into a single attribute with a "kind" property
     public LocatorKind Kind { get; } = kind;
 
     public string Selector { get; } = selector;
