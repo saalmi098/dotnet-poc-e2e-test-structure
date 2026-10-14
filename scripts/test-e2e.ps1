@@ -10,6 +10,7 @@ $baselineProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Baseline\ShopDe
 $pomProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V1\ShopDemo.Tests.E2E.Pom.V1.csproj"
 $pomV2Project = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V2\ShopDemo.Tests.E2E.Pom.V2.csproj"
 $pomV3Project = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V3\ShopDemo.Tests.E2E.Pom.V3.csproj"
+$pomV4Project = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V4\ShopDemo.Tests.E2E.Pom.V4.csproj"
 $screenplayProject = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Screenplay\ShopDemo.Tests.E2E.Screenplay.csproj"
 $playwrightInstaller = Join-Path $repositoryRoot "ShopDemo.Tests.E2E.Pom.V2\bin\Debug\net10.0\playwright.ps1"
 $stdoutLog = Join-Path ([System.IO.Path]::GetTempPath()) "shopdemo-e2e-$PID.out.log"
@@ -84,6 +85,11 @@ try {
     & dotnet test $pomV3Project --no-build --no-restore
     if ($LASTEXITCODE -ne 0) {
         throw "POM V3 E2E tests failed with exit code $LASTEXITCODE."
+    }
+
+    & dotnet test $pomV4Project --no-build --no-restore
+    if ($LASTEXITCODE -ne 0) {
+        throw "POM V4 E2E tests failed with exit code $LASTEXITCODE."
     }
 
     & dotnet test $baselineProject --no-build --no-restore

@@ -19,7 +19,7 @@ dotnet test ShopDemo.Tests --no-restore
 
 ## Playwright E2E suites
 
-The solution has five independent xUnit v3 projects using `Microsoft.Playwright.Xunit.v3` 1.63.0 and xUnit v3 3.2.2: **ShopDemo.Tests.E2E.Baseline** uses Playwright directly, **ShopDemo.Tests.E2E.Pom.V1** uses Page Objects, **ShopDemo.Tests.E2E.Pom.V2** is an attribute-bound Page Object PoC, **ShopDemo.Tests.E2E.Pom.V3** is a compile-time (reflection-free) Page Object PoC, and **ShopDemo.Tests.E2E.Screenplay** uses Screenplay. The original three suites implement the same four journeys; V2 and V3 cover those journeys plus a product-details tab journey. **ShopDemo.Tests.E2E.Shared** contains only the shared Playwright `PageTest` setup, base URL, and demo test data. UI controls used by E2E have stable `data-testid` values.
+The solution has six independent xUnit v3 projects using `Microsoft.Playwright.Xunit.v3` 1.63.0 and xUnit v3 3.2.2: **ShopDemo.Tests.E2E.Baseline** uses Playwright directly, **ShopDemo.Tests.E2E.Pom.V1** uses Page Objects, **ShopDemo.Tests.E2E.Pom.V2** is an attribute-bound Page Object PoC, **ShopDemo.Tests.E2E.Pom.V3** is a compile-time (reflection-free) Page Object PoC, **ShopDemo.Tests.E2E.Pom.V4** extends V2 with typed MudBlazor control wrappers (work in progress), and **ShopDemo.Tests.E2E.Screenplay** uses Screenplay. The original three suites implement the same four journeys; V2 and V3 cover those journeys plus a product-details tab journey. **ShopDemo.Tests.E2E.Shared** contains only the shared Playwright `PageTest` setup, base URL, and demo test data. UI controls used by E2E have stable `data-testid` values.
 
 The Baseline suite keeps navigation, selectors, and interactions directly in each test to provide a comparison for code length and duplication. The POM V1 suite uses `PomPageTestBase`, which inherits `ShopDemoPageTest` to reuse its browser context options and provides a lazy `Pages` property. The page-object graph is created on first access and belongs to that test's `PageTest.Page`; no page-bound objects are shared across tests.
 
@@ -35,7 +35,7 @@ Run all browser suites end-to-end from PowerShell. The script restores from publ
 pwsh .\scripts\test-e2e.ps1
 ```
 
-To run a suite against an already-running app, set `SHOPDEMO_BASE_URL` (default `http://127.0.0.1:5178`) and run `dotnet test ShopDemo.Tests.E2E.Baseline`, `dotnet test ShopDemo.Tests.E2E.Pom.V1`, `dotnet test ShopDemo.Tests.E2E.Pom.V2`, `dotnet test ShopDemo.Tests.E2E.Pom.V3`, or `dotnet test ShopDemo.Tests.E2E.Screenplay`. Each Playwright test uses a fresh browser context; the cross-role test switches users within one context so its session-only stock and orders remain available.
+To run a suite against an already-running app, set `SHOPDEMO_BASE_URL` (default `http://127.0.0.1:5178`) and run `dotnet test ShopDemo.Tests.E2E.Baseline`, `dotnet test ShopDemo.Tests.E2E.Pom.V1`, `dotnet test ShopDemo.Tests.E2E.Pom.V2`, `dotnet test ShopDemo.Tests.E2E.Pom.V3`, `dotnet test ShopDemo.Tests.E2E.Pom.V4`, or `dotnet test ShopDemo.Tests.E2E.Screenplay`. Each Playwright test uses a fresh browser context; the cross-role test switches users within one context so its session-only stock and orders remain available.
 
 ### Reuse in the test patterns
 
@@ -66,6 +66,7 @@ The role and credentials for both accounts are defined in `ShopDemo.Client/wwwro
 - **ShopDemo.Tests.E2E.Pom.V1** — page objects and POM scenarios.
 - **ShopDemo.Tests.E2E.Pom.V2** — independent attribute-bound page objects, reflective factory, locator binder, and tab scenarios.
 - **ShopDemo.Tests.E2E.Pom.V3** — independent compile-time page objects: static-abstract-interface-based generic creation, `Required<T>`/`Optional<T>` typed locators, no reflection.
+- **ShopDemo.Tests.E2E.Pom.V4** — V2 plus typed control wrappers (`Button`, `TextField`, `Select`, ...) that encapsulate MudBlazor interaction behaviour; work in progress.
 - **ShopDemo.Tests.E2E.Screenplay** — actors, abilities, tasks, questions, and matching scenarios.
 
 The client loads the sample catalog from `ShopDemo.Client/wwwroot/data/products.json`; its product images use a local placeholder in `wwwroot/images`.
