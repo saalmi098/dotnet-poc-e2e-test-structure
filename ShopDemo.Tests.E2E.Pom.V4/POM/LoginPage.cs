@@ -1,4 +1,5 @@
-﻿using Microsoft.Playwright;
+using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Shared;
@@ -11,19 +12,19 @@ public sealed class LoginPage(IPage page, ILocator? baseLocator = null) : PageOb
     public ILocator Form { get; private set; } = null!;
 
     [DataTestId("login-email")]
-    public ILocator Email { get; private set; } = null!;
+    public TextField Email { get; private set; } = null!;
 
     [DataTestId("login-password")]
-    public ILocator Password { get; private set; } = null!;
+    public TextField Password { get; private set; } = null!;
 
     [DataTestId("login-submit")]
-    public ILocator Submit { get; private set; } = null!;
+    public Button Submit { get; private set; } = null!;
 
     public async Task<ShopNavigation> SignIn(DemoAccount account)
     {
-        await Email.FillAsync(account.Email);
-        await Password.FillAsync(account.Password);
-        await Submit.ClickAsync();
+        await Email.Fill(account.Email);
+        await Password.Fill(account.Password);
+        await Submit.Click();
 
         var logoutLink = Page.GetByTestId("nav-logout-desktop");
         await logoutLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });

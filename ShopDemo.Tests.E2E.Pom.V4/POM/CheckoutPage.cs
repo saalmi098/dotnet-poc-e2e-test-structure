@@ -1,4 +1,5 @@
-﻿using Microsoft.Playwright;
+using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
@@ -10,22 +11,22 @@ public sealed class CheckoutPage(IPage page, ILocator? baseLocator = null) : Pag
     public ILocator Form { get; private set; } = null!;
 
     [DataTestId("checkout-name")]
-    public ILocator Name { get; private set; } = null!;
+    public TextField Name { get; private set; } = null!;
 
     [DataTestId("checkout-email")]
-    public ILocator Email { get; private set; } = null!;
+    public TextField Email { get; private set; } = null!;
 
     [DataTestId("checkout-confirm")]
-    public ILocator Confirm { get; private set; } = null!;
+    public Button Confirm { get; private set; } = null!;
 
     [DataTestId("checkout-order-number", Required = false)]
     public ILocator OrderNumber { get; private set; } = null!;
 
     public async Task<string> PlaceOrder(string customerName, string email)
     {
-        await Name.FillAsync(customerName);
-        await Email.FillAsync(email);
-        await Confirm.ClickAsync();
+        await Name.Fill(customerName);
+        await Email.Fill(email);
+        await Confirm.Click();
         await OrderNumber.WaitForAsync(new() { State = WaitForSelectorState.Visible });
         return await OrderNumber.InnerTextAsync();
     }

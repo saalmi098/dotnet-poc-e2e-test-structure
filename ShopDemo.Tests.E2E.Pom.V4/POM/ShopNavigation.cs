@@ -1,4 +1,5 @@
 ﻿using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
@@ -13,57 +14,57 @@ public sealed class ShopNavigation(IPage page, ILocator? baseLocator = null) : P
 public sealed class NavigationBar(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [DataTestId("nav-catalog-desktop")]
-    public ILocator CatalogLink { get; private set; } = null!;
+    public Button CatalogLink { get; private set; } = null!;
 
     [DataTestId("nav-cart-desktop")]
-    public ILocator CartLink { get; private set; } = null!;
+    public Button CartLink { get; private set; } = null!;
 
     [DataTestId("nav-login-desktop", Required = false)]
-    public ILocator LoginLink { get; private set; } = null!;
+    public Button LoginLink { get; private set; } = null!;
 
     [DataTestId("nav-inventory-desktop", Required = false)]
-    public ILocator InventoryLink { get; private set; } = null!;
+    public Button InventoryLink { get; private set; } = null!;
 
     [DataTestId("nav-orders-desktop", Required = false)]
-    public ILocator OrdersLink { get; private set; } = null!;
+    public Button OrdersLink { get; private set; } = null!;
 
     [DataTestId("nav-logout-desktop", Required = false)]
-    public ILocator LogoutLink { get; private set; } = null!;
+    public Button LogoutLink { get; private set; } = null!;
 
     public async Task<LoginPage> OpenLogin()
     {
-        await LoginLink.ClickAsync();
+        await LoginLink.Click();
         return await Create<LoginPage>();
     }
 
     public async Task<CatalogPage> OpenCatalog()
     {
-        await CatalogLink.ClickAsync();
+        await CatalogLink.Click();
         return await Create<CatalogPage>();
     }
 
     public async Task<CartPage> OpenCart()
     {
-        await CartLink.ClickAsync();
+        await CartLink.Click();
         return await Create<CartPage>();
     }
 
     public async Task<InventoryPage> OpenInventory()
     {
-        await InventoryLink.ClickAsync();
+        await InventoryLink.Click();
         return await Create<InventoryPage>();
     }
 
     public async Task<OrdersPage> OpenOrders()
     {
-        await OrdersLink.ClickAsync();
+        await OrdersLink.Click();
         return await Create<OrdersPage>();
     }
 
     public async Task<ShopNavigation> SignOut()
     {
-        await LogoutLink.ClickAsync();
-        await LoginLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
+        await LogoutLink.Click();
+        await LoginLink.Expect().ToBeVisibleAsync();
         return await Create<ShopNavigation>();
     }
 }

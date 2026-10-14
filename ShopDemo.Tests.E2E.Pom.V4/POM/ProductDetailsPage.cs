@@ -1,4 +1,5 @@
 ﻿using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Shared;
@@ -11,15 +12,15 @@ public sealed class ProductDetailsPage(IPage page, ILocator? baseLocator = null)
     public ILocator Root { get; private set; } = null!;
 
     [DataTestId("product-overview-tab")]
-    public ILocator OverviewTabLabel { get; private set; } = null!;
+    public Tab OverviewTab { get; private set; } = null!;
 
     [DataTestId("product-inventory-tab")]
-    public ILocator InventoryTabLabel { get; private set; } = null!;
+    public Tab InventoryTab { get; private set; } = null!;
 
     public async Task<ProductDetailsOverviewTab> SwitchToOverviewTab()
     {
         E2ETrace.Write(typeof(ProductDetailsPage), "Clicking Overview tab.");
-        await OverviewTabLabel.ClickAsync();
+        await OverviewTab.Select();
         var panel = Page.GetByTestId("product-overview-panel");
 
         E2ETrace.Write(typeof(ProductDetailsPage), "Creating the scoped Overview tab page object.");
@@ -32,7 +33,7 @@ public sealed class ProductDetailsPage(IPage page, ILocator? baseLocator = null)
     public async Task<ProductDetailsInventoryTab> SwitchToInventoryTab()
     {
         E2ETrace.Write(typeof(ProductDetailsPage), "Clicking Inventory tab.");
-        await InventoryTabLabel.ClickAsync();
+        await InventoryTab.Select();
         var panel = Page.GetByTestId("product-inventory-panel");
 
         E2ETrace.Write(

@@ -61,6 +61,20 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
     }
 
     [Fact]
+    public async Task Control_waits_for_its_resolved_root_not_for_the_matched_element()
+    {
+        await Page.SetContentAsync("""
+            <div class="wrapper"><input type="hidden" data-testid="hidden-matched"><span>Visible root</span></div>
+            """);
+
+        var probe = await new PageObjectFactory().Create<RootResolvingProbePage>(Page);
+
+        Assert.True(await probe.IsReady());
+        await probe.Field.Expect().ToBeVisibleAsync();
+        await probe.Field.Expect().ToContainTextAsync("Visible root");
+    }
+
+    [Fact]
     public async Task Properties_without_a_locator_attribute_are_not_bound()
     {
         await Page.SetContentAsync("<main></main>");
@@ -142,6 +156,17 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
 
         [DataTestId("optional-control-probe", Required = false)]
         public ProbeControl Optional { get; private set; } = null!;
+    }
+
+    private sealed class RootResolvingControl(IPage page, ILocator? baseLocator = null) : Control(page, baseLocator)
+    {
+        protected override ILocator ResolveRoot(ILocator matched) => matched.Locator("xpath=ancestor::div[@class='wrapper']");
+    }
+
+    private sealed class RootResolvingProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    {
+        [DataTestId("hidden-matched")]
+        public RootResolvingControl Field { get; private set; } = null!;
     }
 
     private sealed class UnattributedProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)

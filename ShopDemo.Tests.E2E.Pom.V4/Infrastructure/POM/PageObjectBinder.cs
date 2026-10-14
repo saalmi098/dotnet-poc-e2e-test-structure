@@ -1,4 +1,5 @@
 ﻿using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 using ShopDemo.Tests.E2E.Shared;
 using System.Diagnostics;
@@ -42,17 +43,16 @@ internal static class PageObjectBinder
             var locator = PageObjectLocatorResolver.ResolveLocator(page, baseLocator, attribute);
             var wait = attribute.Required && waitForRequiredLocators;
 
-            if (wait)
-            {
-                var waitDuration = Stopwatch.StartNew();
-                E2ETrace.Write(
-                    typeof(PageObjectBinder),
-                    $"Waiting for required locator '{objectType.Name}.{property.Name}' ({attribute.Describe()}).");
+            // For most properties the element matched by the attribute is exactly what must become visible, so it is
+            // waited for right here. A control is different: the matched element is only a starting point and the
+            // control decides which element is its real root (e.g. MudSelect puts the test id on a hidden input, so
+            // the visible root is an ancestor). That root is only known once the control is constructed, so for
+            // controls the wait happens further below, on the resolved root.
+            var isControl = typeof(Control).IsAssignableFrom(property.PropertyType);
 
-                await WaitUntilVisible(locator, objectType, property, attribute);
-                E2ETrace.Write(
-                    typeof(PageObjectBinder),
-                    $"Required locator '{objectType.Name}.{property.Name}' is visible after {waitDuration.Elapsed}.");
+            if (wait && !isControl)
+            {
+                await WaitForRequiredLocator(locator, objectType, property, attribute);
             }
 
             if (typeof(ILocator).IsAssignableFrom(property.PropertyType))
@@ -71,6 +71,18 @@ internal static class PageObjectBinder
                 var child = await factory.Create(property.PropertyType, page, locator, wait);
                 property.SetValue(instance, child);
 
+                if (child is Control control)
+                {
+                    // The control now exists, so its resolved root (control.Locator) is known: wait for that root
+                    // (the skipped wait above), and register it so the control's IsReady() checks the same element.
+                    if (wait)
+                    {
+                        await WaitForRequiredLocator(control.Locator, objectType, property, attribute);
+                    }
+
+                    control.AddRequiredLocator(control.Locator);
+                }
+
                 if (attribute.Required)
                 {
                     instance.AddRequiredChild(child);
@@ -82,6 +94,24 @@ internal static class PageObjectBinder
                     $"'{property.PropertyType.FullName}' for auto-binding.");
             }
         }
+    }
+
+    private static async Task WaitForRequiredLocator(
+        ILocator locator,
+        Type objectType,
+        PropertyInfo property,
+        LocatorMetadataAttribute attribute)
+    {
+        var waitDuration = Stopwatch.StartNew();
+        E2ETrace.Write(
+            typeof(PageObjectBinder),
+            $"Waiting for required locator '{objectType.Name}.{property.Name}' ({attribute.Describe()}).");
+
+        await WaitUntilVisible(locator, objectType, property, attribute);
+
+        E2ETrace.Write(
+            typeof(PageObjectBinder),
+            $"Required locator '{objectType.Name}.{property.Name}' is visible after {waitDuration.Elapsed}.");
     }
 
     private static async Task WaitUntilVisible(

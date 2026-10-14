@@ -1,4 +1,5 @@
-﻿using Microsoft.Playwright;
+using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
@@ -9,9 +10,13 @@ public sealed class CartPage(IPage page, ILocator? baseLocator = null) : PageObj
     [DataTestId("cart-page")]
     public ILocator Root { get; private set; } = null!;
 
+    // Not shown to a store manager (who cannot check out), so it must not block readiness.
+    [DataTestId("cart-checkout", Required = false)]
+    public Button Checkout { get; private set; } = null!;
+
     public async Task<CheckoutPage> ProceedToCheckout()
     {
-        await Root.GetByTestId("cart-checkout").ClickAsync();
+        await Checkout.Click();
         return await Create<CheckoutPage>();
     }
 }

@@ -1,4 +1,5 @@
-﻿using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
+﻿using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Pom.V4.POM;
 using ShopDemo.Tests.E2E.Shared;
 using System.Diagnostics;
@@ -38,6 +39,58 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     }
 
     [Fact]
+    public async Task Catalog_can_be_filtered_by_category_through_the_select_control()
+    {
+        await Page.GotoAsync("/");
+        var catalog = await _factory.Create<CatalogPage>(Page);
+        await catalog.ProductCards.First.WaitForAsync();
+        var allProducts = await catalog.ProductCards.CountAsync();
+
+        await catalog.FilterByCategory("Home");
+
+        Assert.Equal("Home", await catalog.Category.GetSelectedText());
+        await catalog.Category.Expect().ToContainTextAsync("Home");
+        var homeProducts = await catalog.ProductCards.CountAsync();
+        Assert.InRange(homeProducts, 1, allProducts - 1);
+
+        await catalog.FilterByCategory("All categories");
+
+        await catalog.Category.Expect().ToContainTextAsync("All categories");
+        await Assertions.Expect(catalog.ProductCards).ToHaveCountAsync(allProducts);
+    }
+
+    [Fact]
+    public async Task Catalog_can_be_searched_through_the_text_field_control()
+    {
+        await Page.GotoAsync("/");
+        var catalog = await _factory.Create<CatalogPage>(Page);
+        await catalog.ProductCards.First.WaitForAsync();
+
+        await catalog.SearchFor("Tote");
+
+        await Expect(catalog.GetProductCard(E2ETestSettings.CanvasToteId)).ToBeVisibleAsync();
+        Assert.Equal("Tote", await catalog.Search.GetValue());
+        await Expect(catalog.ProductCards).ToHaveCountAsync(1);
+
+        await catalog.SearchFor("no product has this name");
+
+        await Expect(catalog.ProductCards).ToHaveCountAsync(0);
+    }
+
+    [Fact]
+    public async Task Login_page_controls_are_bound_and_ready()
+    {
+        await Page.GotoAsync("/login");
+        var login = await _factory.Create<LoginPage>(Page);
+
+        Assert.True(await login.IsReady());
+        await login.Email.Fill(E2ETestSettings.Shopper.Email);
+        Assert.Equal(E2ETestSettings.Shopper.Email, await login.Email.GetValue());
+        await login.Password.Expect().ToBeVisibleAsync();
+        await login.Submit.Expect().ToContainTextAsync("Log in", new() { IgnoreCase = true });
+    }
+
+    [Fact]
     public async Task Guest_is_redirected_to_login_from_inventory_management()
     {
         await Page.GotoAsync("/manage/inventory");
@@ -67,8 +120,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     public async Task Shopper_does_not_see_inventory_management_navigation()
     {
         var navigation = await SignIn(E2ETestSettings.Shopper);
-
-        Assert.False(await navigation.Bar.InventoryLink.IsVisibleAsync());
+        await navigation.Bar.InventoryLink.Expect().Not.ToBeVisibleAsync();
     }
 
     [Fact]
@@ -78,14 +130,9 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
         var catalog = await _factory.Create<CatalogPage>(Page);
         var product = await catalog.OpenProductDetails(E2ETestSettings.CanvasToteId);
 
-        Assert.Equal(
-            "tab",
-            await Page.GetByTestId("product-overview-tab")
-                .EvaluateAsync<string>("element => element.closest('[role=tab]')?.getAttribute('role') ?? ''"));
-        Assert.Equal(
-            "tab",
-            await Page.GetByTestId("product-inventory-tab")
-                .EvaluateAsync<string>("element => element.closest('[role=tab]')?.getAttribute('role') ?? ''"));
+        // the Tab control resolves its root to the enclosing role=tab element of the labelled span
+        await product.OverviewTab.Expect().ToHaveAttributeAsync("role", "tab");
+        await product.InventoryTab.Expect().ToHaveAttributeAsync("role", "tab");
 
         var overview = await product.SwitchToOverviewTab();
         Assert.Equal("Market Canvas Tote", await overview.Name.InnerTextAsync());
@@ -110,12 +157,44 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
             inventoryLoad.Elapsed >= TimeSpan.FromSeconds(4.5),
             $"Inventory loaded too quickly: {inventoryLoad.Elapsed}.");
 
-        Assert.Equal(E2ETestSettings.CanvasToteId, await inventory.ProductId.InnerTextAsync());
-        Assert.Equal("0", await inventory.Stock.InnerTextAsync());
-        Assert.Equal("Out of stock", await inventory.Availability.InnerTextAsync());
-        Assert.Equal(10, await inventory.Grid.Locator("[data-testid^='product-inventory-row-']").CountAsync());
-        Assert.True(await inventory.Pager.IsVisibleAsync());
+        await Expect(inventory.ProductId).ToHaveTextAsync(E2ETestSettings.CanvasToteId);
+        await Expect(inventory.Stock).ToHaveTextAsync("0");
+        await Expect(inventory.Availability).ToHaveTextAsync("Out of stock");
+        await Expect(inventory.Rows).ToHaveCountAsync(10);
+        await inventory.Pager.Expect().ToBeVisibleAsync();
         Assert.True(await inventory.IsReady());
+    }
+
+    [Fact]
+    public async Task Product_inventory_grid_can_be_read_and_paged_through_grid_controls()
+    {
+        await Page.GotoAsync("/");
+        var catalog = await _factory.Create<CatalogPage>(Page);
+        var product = await catalog.OpenProductDetails(E2ETestSettings.CanvasToteId);
+        await product.SwitchToOverviewTab();
+        await product.OverviewTab.Expect().ToHaveAttributeAsync("aria-selected", "true");
+
+        var inventory = await product.SwitchToInventoryTab();
+        await product.InventoryTab.Expect().ToHaveAttributeAsync("aria-selected", "true");
+        await product.OverviewTab.Expect().ToHaveAttributeAsync("aria-selected", "false");
+
+        await Expect(inventory.ColumnHeaders).ToHaveTextAsync(["#", "Product ID", "Stock", "Availability"]);
+        await Expect(inventory.Rows).ToHaveCountAsync(10);
+        await Expect(inventory.FirstRowProductId).ToHaveTextAsync(E2ETestSettings.CanvasToteId);
+        await Expect(inventory.PageRange).ToHaveTextAsync("1-10 of 25");
+
+        await inventory.GoToNextPage();
+        await Expect(inventory.PageRange).ToHaveTextAsync("11-20 of 25");
+        await Expect(inventory.Rows).ToHaveCountAsync(10);
+
+        await inventory.GoToLastPage();
+        await Expect(inventory.PageRange).ToHaveTextAsync("21-25 of 25");
+        await Expect(inventory.Rows).ToHaveCountAsync(5);
+
+        await inventory.GoToFirstPage();
+        await inventory.ShowRowsPerPage(25);
+        await Expect(inventory.PageRange).ToHaveTextAsync("1-25 of 25");
+        await Expect(inventory.ProductIdCells).ToHaveTextAsync(Enumerable.Repeat(E2ETestSettings.CanvasToteId, 25).ToArray());
     }
 
     private async Task<ShopNavigation> SignIn(DemoAccount account)
