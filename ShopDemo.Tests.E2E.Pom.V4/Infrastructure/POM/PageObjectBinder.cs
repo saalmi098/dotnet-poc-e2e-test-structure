@@ -105,7 +105,7 @@ internal static class PageObjectBinder
         ILocator locator,
         Type objectType,
         PropertyInfo property,
-        LocatorMetadataAttribute attribute)
+        LocatorAttribute attribute)
     {
         var waitDuration = Stopwatch.StartNew();
         E2ETrace.Write(
@@ -123,7 +123,7 @@ internal static class PageObjectBinder
         ILocator locator,
         Type objectType,
         PropertyInfo property,
-        LocatorMetadataAttribute attribute)
+        LocatorAttribute attribute)
     {
         try
         {

@@ -5,7 +5,7 @@ using System.Reflection;
 namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
 /// <summary>
-/// Validates <see cref="LocatorMetadataAttribute"/> on page-object properties and resolves selectors to Playwright locators.
+/// Validates <see cref="LocatorAttribute"/> on component properties and resolves selectors to Playwright locators.
 /// </summary>
 internal static class PageObjectLocatorResolver
 {
@@ -26,12 +26,12 @@ internal static class PageObjectLocatorResolver
     /// default value. A bound property must be an <see cref="ILocator"/> or <see cref="Component"/> property
     /// with exactly one such attribute. Invalid property or attribute combinations throw.
     /// </remarks>
-    internal static LocatorMetadataAttribute? GetBindingAttribute(Type objectType, PropertyInfo property)
+    internal static LocatorAttribute? GetBindingAttribute(Type objectType, PropertyInfo property)
     {
         var isAutoBoundProperty = SupportedAutoBoundPropertyTypes.Any(t => t.IsAssignableFrom(property.PropertyType));
 
         var attributes = property
-            .GetCustomAttributes<LocatorMetadataAttribute>(inherit: true)
+            .GetCustomAttributes<LocatorAttribute>(inherit: true)
             .ToArray();
 
         if (!isAutoBoundProperty)
@@ -53,7 +53,7 @@ internal static class PageObjectLocatorResolver
         if (attributes.Length > 1)
         {
             throw new PageObjectBindingException(
-                $"Property '{objectType.Name}.{property.Name}' must have at most one '{nameof(LocatorMetadataAttribute)}' attribute! " +
+                $"Property '{objectType.Name}.{property.Name}' must have at most one '{nameof(LocatorAttribute)}' attribute! " +
                 $"Found {attributes.Length}.");
         }
 
@@ -61,48 +61,27 @@ internal static class PageObjectLocatorResolver
     }
 
     /// <summary>
-    /// Resolves a <see cref="LocatorMetadataAttribute"/> to a Playwright <see cref="ILocator"/>.
+    /// Resolves a <see cref="LocatorAttribute"/> to a Playwright <see cref="ILocator"/>.
     /// </summary>
     /// <remarks>
-    /// <see cref="DataTestIdAttribute"/> uses a test ID.
-    /// <see cref="LocatorAttribute"/> supports role, text, CSS, and XPath strategies.
+    /// The selector strategy and strategy-specific options are validated before creating the locator.
     /// </remarks>
-    internal static ILocator ResolveLocator(IPage page, ILocator? baseLocator, LocatorMetadataAttribute attribute)
-        => attribute switch
-        {
-            DataTestIdAttribute testIdAttribute => ResolveDataTestIdAttribute(page, baseLocator, testIdAttribute),
-            LocatorAttribute locatorAttribute => ResolveLocatorAttribute(page, baseLocator, locatorAttribute),
-            _ => throw new PageObjectBindingException($"Unsupported locator attribute type '{attribute.GetType().Name}'.")
-        };
-
-    private static ILocator ResolveDataTestIdAttribute(
-        IPage page,
-        ILocator? baseLocator,
-        DataTestIdAttribute attribute)
-    {
-        if (string.IsNullOrWhiteSpace(attribute.TestId))
-        {
-            throw new PageObjectBindingException("A DataTestId locator cannot be empty.");
-        }
-
-        return baseLocator is null
-            ? page.GetByTestId(attribute.TestId)
-            : baseLocator.GetByTestId(attribute.TestId);
-    }
-
-    private static ILocator ResolveLocatorAttribute(
-        IPage page,
-        ILocator? baseLocator,
-        LocatorAttribute attribute)
+    internal static ILocator ResolveLocator(IPage page, ILocator? baseLocator, LocatorAttribute attribute)
     {
         if (string.IsNullOrWhiteSpace(attribute.Selector))
         {
-            throw new PageObjectBindingException("A Locator selector cannot be empty.");
+            throw new PageObjectBindingException($"Selector for locator kind '{attribute.Kind}' cannot be empty.");
+        }
+
+        if (attribute.Name is not null && attribute.Kind != LocatorKind.Role)
+        {
+            throw new PageObjectBindingException(
+                $"The Name option is only supported for '{LocatorKind.Role}' locators, not '{attribute.Kind}'.");
         }
 
         return attribute.Kind switch
         {
-            // TODO: test if those all work (not only within the constructed example in PageObjectFactoryTests.cs, but with the running application in the browser)
+            LocatorKind.DataTestId => ResolveByTestId(page, baseLocator, attribute.Selector),
             LocatorKind.Role => ResolveByRole(page, baseLocator, attribute),
             LocatorKind.Text => ResolveByText(page, baseLocator, attribute),
             LocatorKind.Css => ResolveByCss(page, baseLocator, attribute.Selector),
@@ -111,6 +90,9 @@ internal static class PageObjectLocatorResolver
                 $"Unsupported locator kind '{attribute.Kind}' on selector '{attribute.Selector}'.")
         };
     }
+
+    private static ILocator ResolveByTestId(IPage page, ILocator? baseLocator, string testId)
+        => baseLocator is null ? page.GetByTestId(testId) : baseLocator.GetByTestId(testId);
 
     private static ILocator ResolveByRole(IPage page, ILocator? baseLocator, LocatorAttribute attribute)
     {
@@ -124,14 +106,14 @@ internal static class PageObjectLocatorResolver
             return baseLocator.GetByRole(role, new LocatorGetByRoleOptions
             {
                 Name = attribute.Name,
-                Exact = attribute.Exact
+                Exact = true
             });
         }
 
         return page.GetByRole(role, new PageGetByRoleOptions
         {
             Name = attribute.Name,
-            Exact = attribute.Exact
+            Exact = true
         });
     }
 
@@ -141,13 +123,13 @@ internal static class PageObjectLocatorResolver
         {
             return baseLocator.GetByText(attribute.Selector, new LocatorGetByTextOptions
             {
-                Exact = attribute.Exact
+                Exact = true
             });
         }
 
         return page.GetByText(attribute.Selector, new PageGetByTextOptions
         {
-            Exact = attribute.Exact
+            Exact = true
         });
     }
 

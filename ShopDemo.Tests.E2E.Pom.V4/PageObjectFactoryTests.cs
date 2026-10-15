@@ -15,7 +15,9 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
         await Page.SetContentAsync("""
             <main data-testid="probe-parent">
               <button>Save probe</button>
+              <button>Save probe extra</button>
               <p>Text probe</p>
+              <p>Text probe extra</p>
               <div class="css-probe">CSS probe</div>
               <span data-probe="xpath">XPath probe</span>
               <span data-testid="optional-probe" hidden>Optional probe</span>
@@ -134,6 +136,17 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
     }
 
     [Fact]
+    public async Task Locator_rejects_name_option_for_non_role_strategy()
+    {
+        await Page.SetContentAsync("<p>text probe</p>");
+
+        var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
+            () => new PageObjectFactory().Create<InvalidLocatorOptionsProbe>(Page));
+
+        Assert.Contains("Name option is only supported", exception.Message);
+    }
+
+    [Fact]
     public async Task Factory_rejects_unsupported_constructor_conventions()
     {
         var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
@@ -145,7 +158,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
 
     private sealed class LocatorProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
-        [DataTestId("probe-parent")]
+        [Locator(LocatorKind.DataTestId, "probe-parent")]
         public LocatorProbeContent Content { get; private set; } = null!;
     }
 
@@ -154,7 +167,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
         [Locator(LocatorKind.Role, "button", Name = "Save probe")]
         public ILocator Button { get; private set; } = null!;
 
-        [Locator(LocatorKind.Text, "Text probe", Exact = true)]
+        [Locator(LocatorKind.Text, "Text probe")]
         public ILocator Text { get; private set; } = null!;
 
         [Locator(LocatorKind.Css, ".css-probe")]
@@ -163,7 +176,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
         [Locator(LocatorKind.XPath, ".//span[@data-probe='xpath']")]
         public ILocator XPath { get; private set; } = null!;
 
-        [DataTestId("optional-probe", Required = false)]
+        [Locator(LocatorKind.DataTestId, "optional-probe", Required = false)]
         public ILocator Optional { get; private set; } = null!;
     }
 
@@ -171,10 +184,10 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
 
     private sealed class ControlProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
-        [DataTestId("control-probe")]
+        [Locator(LocatorKind.DataTestId, "control-probe")]
         public ProbeControl Required { get; private set; } = null!;
 
-        [DataTestId("optional-control-probe", Required = false)]
+        [Locator(LocatorKind.DataTestId, "optional-control-probe", Required = false)]
         public ProbeControl Optional { get; private set; } = null!;
     }
 
@@ -185,7 +198,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
 
     private sealed class RootResolvingProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
-        [DataTestId("hidden-matched")]
+        [Locator(LocatorKind.DataTestId, "hidden-matched")]
         public RootResolvingControl Field { get; private set; } = null!;
     }
 
@@ -198,13 +211,19 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
 
     private sealed class MissingRequiredProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
-        [DataTestId("missing-required-probe")]
+        [Locator(LocatorKind.DataTestId, "missing-required-probe")]
         public ILocator Missing { get; private set; } = null!;
+    }
+
+    private sealed class InvalidLocatorOptionsProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    {
+        [Locator(LocatorKind.Text, "text probe", Name = "not a role")]
+        public ILocator Invalid { get; private set; } = null!;
     }
 
     private sealed class UnsupportedConstructorProbe(IPage page, string selector) : PageObject(page)
     {
-        [DataTestId("unsupported-constructor-probe")]
+        [Locator(LocatorKind.DataTestId, "unsupported-constructor-probe")]
         public ILocator Element { get; private set; } = null!;
     }
 }

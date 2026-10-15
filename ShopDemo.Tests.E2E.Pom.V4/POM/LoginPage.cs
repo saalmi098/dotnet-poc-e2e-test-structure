@@ -8,16 +8,16 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 
 public sealed class LoginPage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
-    [DataTestId("login-form")]
+    [Locator(LocatorKind.DataTestId, "login-form")]
     public ILocator Form { get; private set; } = null!;
 
-    [DataTestId("login-email")]
+    [Locator(LocatorKind.DataTestId, "login-email")]
     public TextField Email { get; private set; } = null!;
 
-    [DataTestId("login-password")]
+    [Locator(LocatorKind.DataTestId, "login-password")]
     public TextField Password { get; private set; } = null!;
 
-    [DataTestId("login-submit")]
+    [Locator(LocatorKind.DataTestId, "login-submit")]
     public Button Submit { get; private set; } = null!;
 
     public async Task<ShopNavigation> SignIn(DemoAccount account)

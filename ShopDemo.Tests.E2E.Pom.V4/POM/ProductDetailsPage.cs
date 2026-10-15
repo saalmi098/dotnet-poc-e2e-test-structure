@@ -8,13 +8,13 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 
 public sealed class ProductDetailsPage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
-    [DataTestId("product-details")]
+    [Locator(LocatorKind.DataTestId, "product-details")]
     public ILocator Root { get; private set; } = null!;
 
-    [DataTestId("product-overview-tab")]
+    [Locator(LocatorKind.DataTestId, "product-overview-tab")]
     public Tab OverviewTab { get; private set; } = null!;
 
-    [DataTestId("product-inventory-tab")]
+    [Locator(LocatorKind.DataTestId, "product-inventory-tab")]
     public Tab InventoryTab { get; private set; } = null!;
 
     public async Task<ProductDetailsOverviewTab> SwitchToOverviewTab()

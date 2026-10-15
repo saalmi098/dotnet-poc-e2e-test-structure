@@ -6,12 +6,17 @@
 public enum LocatorKind
 {
     /// <summary>
-    /// Finds an element by its ARIA role, optionally filtered by accessible name.
+    /// Finds an element by its <c>data-testid</c> value.
+    /// </summary>
+    DataTestId,
+
+    /// <summary>
+    /// Finds an element by its ARIA role, optionally filtered by an exact accessible name.
     /// </summary>
     Role,
 
     /// <summary>
-    /// Finds an element by text; exact matching is controlled by <see cref="LocatorAttribute.Exact"/>.
+    /// Finds an element by exact text.
     /// </summary>
     Text,
 

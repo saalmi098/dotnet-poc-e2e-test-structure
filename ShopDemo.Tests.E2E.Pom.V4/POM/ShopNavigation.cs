@@ -13,22 +13,22 @@ public sealed class ShopNavigation(IPage page, ILocator? baseLocator = null) : P
 
 public sealed class NavigationBar(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
-    [DataTestId("nav-catalog-desktop")]
+    [Locator(LocatorKind.DataTestId, "nav-catalog-desktop")]
     public Button CatalogLink { get; private set; } = null!;
 
-    [DataTestId("nav-cart-desktop")]
+    [Locator(LocatorKind.DataTestId, "nav-cart-desktop")]
     public Button CartLink { get; private set; } = null!;
 
-    [DataTestId("nav-login-desktop", Required = false)]
+    [Locator(LocatorKind.DataTestId, "nav-login-desktop", Required = false)]
     public Button LoginLink { get; private set; } = null!;
 
-    [DataTestId("nav-inventory-desktop", Required = false)]
+    [Locator(LocatorKind.DataTestId, "nav-inventory-desktop", Required = false)]
     public Button InventoryLink { get; private set; } = null!;
 
-    [DataTestId("nav-orders-desktop", Required = false)]
+    [Locator(LocatorKind.DataTestId, "nav-orders-desktop", Required = false)]
     public Button OrdersLink { get; private set; } = null!;
 
-    [DataTestId("nav-logout-desktop", Required = false)]
+    [Locator(LocatorKind.DataTestId, "nav-logout-desktop", Required = false)]
     public Button LogoutLink { get; private set; } = null!;
 
     public async Task<LoginPage> OpenLogin()
