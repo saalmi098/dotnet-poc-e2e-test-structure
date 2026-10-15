@@ -102,7 +102,6 @@ internal static class PageObjectLocatorResolver
 
         return attribute.Kind switch
         {
-            // TODO: test if those all work (not only within the constructed example in PageObjectFactoryTests.cs, but with the running application in the browser)
             LocatorKind.Role => ResolveByRole(page, baseLocator, attribute),
             LocatorKind.Text => ResolveByText(page, baseLocator, attribute),
             LocatorKind.Css => ResolveByCss(page, baseLocator, attribute.Selector),
