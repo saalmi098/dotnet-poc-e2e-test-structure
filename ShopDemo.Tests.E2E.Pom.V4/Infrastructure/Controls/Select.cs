@@ -10,7 +10,7 @@ public sealed class Select(IPage page, ILocator? baseLocator = null) : Control(p
 {
     private ILocator OpenPopover => Page.Locator(".mud-popover-open");
 
-    protected override ILocator ResolveRoot(ILocator matched)
+    protected override ILocator ResolveControlRoot(ILocator matched)
         => matched.Locator("xpath=ancestor::div[contains(concat(' ', normalize-space(@class), ' '), ' mud-input-control ')][1]");
 
     /// <summary>

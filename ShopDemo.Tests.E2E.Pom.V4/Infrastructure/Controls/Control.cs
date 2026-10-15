@@ -19,7 +19,7 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : Compon
     /// <summary>
     /// The locator of this control's root element. Escape hatch for Playwright APIs that need an <see cref="ILocator"/>.
     /// </summary>
-    public ILocator Locator => _root ??= ResolveRoot(
+    public ILocator Locator => _root ??= ResolveControlRoot(
         BaseLocator ?? throw new InvalidOperationException(
             $"Control '{GetType().Name}' has no locator; it must be bound as an attributed property of a page object."));
 
@@ -29,11 +29,16 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : Compon
     public ILocatorAssertions Expect() => Assertions.Expect(Locator); // TODO: not necessarily needed. Instead of writing e.g. `await control.Expect().ToBeVisibleAsync()`, we could just write `await Expect(control.Locator).ToBeVisibleAsync()`.
 
     /// <summary>
-    /// Maps the element matched by the locator attribute to the control's root element. MudBlazor does not forward
-    /// <c>data-testid</c> consistently (e.g. a select puts it on a hidden input), so controls override this to find
-    /// the visible element. The binder waits for the resolved root, not for the matched element.
+    /// Resolves the element matched by the locator attribute to this control's interaction root.
+    /// Override this when MudBlazor places the test ID on an internal element rather than the visible control.
+    /// For example, a <c>MudSelect</c> puts its test ID on a hidden input, which cannot satisfy the binder's
+    /// visibility wait; the select resolves that input to its visible control container instead.
     /// </summary>
-    protected virtual ILocator ResolveRoot(ILocator matched) => matched;
+    /// <remarks>
+    /// The binder waits for the returned root and uses it for readiness checks and control interactions.
+    /// Controls whose matched element is already the correct interaction root can use the default implementation.
+    /// </remarks>
+    protected virtual ILocator ResolveControlRoot(ILocator matched) => matched;
 
     /// <summary>
     /// Writes a trace line for an interaction with this control.

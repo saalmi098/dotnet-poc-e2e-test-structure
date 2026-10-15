@@ -8,7 +8,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 /// </summary>
 public sealed class Tab(IPage page, ILocator? baseLocator = null) : Control(page, baseLocator)
 {
-    protected override ILocator ResolveRoot(ILocator matched)
+    protected override ILocator ResolveControlRoot(ILocator matched)
         => matched.Locator("xpath=ancestor-or-self::*[@role='tab'][1]");
 
     /// <summary>

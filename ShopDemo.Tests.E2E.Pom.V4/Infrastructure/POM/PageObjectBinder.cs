@@ -43,11 +43,9 @@ internal static class PageObjectBinder
             var locator = PageObjectLocatorResolver.ResolveLocator(page, baseLocator, attribute);
             var wait = attribute.Required && waitForRequiredLocators;
 
-            // For most properties the element matched by the attribute is exactly what must become visible, so it is
-            // waited for right here. A control is different: the matched element is only a starting point and the
-            // control decides which element is its real root (e.g. MudSelect puts the test id on a hidden input, so
-            // the visible root is an ancestor). That root is only known once the control is constructed, so for
-            // controls the wait happens further below, on the resolved root.
+            // Usually locator attributes match the visible element, so the binder can wait immediately.
+            // But: Some controls may map an internal match to a different visible root; for example, MudSelect puts
+            // its test ID on a hidden input (therefore cannot be waited on directly). Create the control first, then wait for its visible root below.
             var isControl = typeof(Control).IsAssignableFrom(property.PropertyType);
 
             if (wait && !isControl)
@@ -67,7 +65,7 @@ internal static class PageObjectBinder
             }
             else if (typeof(Component).IsAssignableFrom(property.PropertyType))
             {
-                // create and bind child component property
+                // create and bind child component property (Control or PageObject)
                 var child = await factory.Create(property.PropertyType, page, locator, wait);
                 property.SetValue(instance, child);
 
@@ -85,7 +83,14 @@ internal static class PageObjectBinder
 
                 if (attribute.Required)
                 {
-                    instance.AddRequiredChild(child);
+                    if (instance is not PageObject pageObject)
+                    {
+                        throw new PageObjectBindingException(
+                            $"Required component property '{objectType.Name}.{property.Name}' can only be bound on a page object. " +
+                            "Controls are leaf components and cannot own required child components.");
+                    }
+
+                    pageObject.AddRequiredChild(child);
                 }
             }
             else

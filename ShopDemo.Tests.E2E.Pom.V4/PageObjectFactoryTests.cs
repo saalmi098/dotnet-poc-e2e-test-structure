@@ -33,6 +33,26 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
     }
 
     [Fact]
+    public async Task Page_object_readiness_includes_required_child_components()
+    {
+        await Page.SetContentAsync("""
+            <main data-testid="probe-parent">
+              <button>Save probe</button>
+              <p>Text probe</p>
+              <div class="css-probe">CSS probe</div>
+              <span data-probe="xpath">XPath probe</span>
+              <span data-testid="optional-probe" hidden>Optional probe</span>
+            </main>
+            """);
+
+        var probe = await new PageObjectFactory().Create<LocatorProbe>(Page);
+
+        Assert.True(await probe.IsReady());
+        await probe.Content.Button.EvaluateAsync("element => element.style.visibility = 'hidden'");
+        Assert.False(await probe.IsReady());
+    }
+
+    [Fact]
     public async Task Binds_control_properties_with_the_matched_locator_as_root()
     {
         await Page.SetContentAsync("""
@@ -160,7 +180,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
 
     private sealed class RootResolvingControl(IPage page, ILocator? baseLocator = null) : Control(page, baseLocator)
     {
-        protected override ILocator ResolveRoot(ILocator matched) => matched.Locator("xpath=ancestor::div[@class='wrapper']");
+        protected override ILocator ResolveControlRoot(ILocator matched) => matched.Locator("xpath=ancestor::div[@class='wrapper']");
     }
 
     private sealed class RootResolvingProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)

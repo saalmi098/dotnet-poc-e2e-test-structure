@@ -8,6 +8,31 @@ namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 public abstract class PageObject(IPage page, ILocator? baseLocator = null)
     : Component(page, baseLocator)
 {
+    private readonly List<Component> _requiredChildren = [];
+
+    internal void AddRequiredChild(Component child) => _requiredChildren.Add(child);
+
+    /// <summary>
+    /// Reports whether this page object and its required child components are currently ready.
+    /// </summary>
+    public override async Task<bool> IsReady()
+    {
+        if (!await base.IsReady())
+        {
+            return false;
+        }
+
+        foreach (var child in _requiredChildren)
+        {
+            if (!await child.IsReady())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// Creates and binds a child page object, optionally limiting its locators to a component scope.
     /// </summary>
