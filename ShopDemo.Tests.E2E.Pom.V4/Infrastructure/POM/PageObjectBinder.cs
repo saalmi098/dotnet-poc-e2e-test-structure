@@ -8,8 +8,8 @@ using System.Reflection;
 namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
 /// <summary>
-/// Binds locator metadata to the <see cref="ILocator"/> and nested <see cref="Component"/> properties
-/// of a constructed <see cref="Component"/>.
+/// Binds locator metadata to the <see cref="ILocator"/> and nested <see cref="IBindableComponent"/> properties
+/// of a constructed <see cref="IBindableComponent"/>.
 /// </summary>
 internal static class PageObjectBinder
 {
@@ -18,7 +18,7 @@ internal static class PageObjectBinder
     /// Nested components are bound recursively with their matched parent locator as the scope.
     /// </summary>
     internal static async Task Bind(
-        Component instance,
+        IBindableComponent instance,
         IPage page,
         ILocator? baseLocator,
         PageObjectFactory factory,
@@ -63,7 +63,7 @@ internal static class PageObjectBinder
                     instance.AddRequiredLocator(locator);
                 }
             }
-            else if (typeof(Component).IsAssignableFrom(property.PropertyType))
+            else if (typeof(IBindableComponent).IsAssignableFrom(property.PropertyType))
             {
                 // create and bind child component property (Control or PageObject)
                 var child = await factory.Create(property.PropertyType, page, locator, wait);

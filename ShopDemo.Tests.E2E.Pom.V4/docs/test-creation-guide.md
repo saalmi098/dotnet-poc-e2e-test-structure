@@ -73,7 +73,7 @@ public sealed class ExamplePage(IPage page, ILocator? baseLocator = null)
 }
 ```
 
-Every auto-bound public property must have exactly one `Locator` attribute, be an `ILocator` or `Component` type (including a typed control), and have a setter. Properties without an attribute are ignored. Keep the property non-nullable: `Required = false` means the UI element can be absent, not that the bound locator or control object is null.
+Every auto-bound public property must have exactly one `Locator` attribute, be an `ILocator` or `IBindableComponent` type (including a typed control), and have a setter. Properties without an attribute are ignored. Keep the property non-nullable: `Required = false` means the UI element can be absent, not that the bound locator or control object is null.
 
 | Locator declaration | Use |
 | --- | --- |

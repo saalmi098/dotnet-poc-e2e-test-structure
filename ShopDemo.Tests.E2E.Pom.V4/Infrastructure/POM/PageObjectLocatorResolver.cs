@@ -15,7 +15,7 @@ internal static class PageObjectLocatorResolver
     private static Type[] SupportedAutoBoundPropertyTypes =>
     [
         typeof(ILocator),
-        typeof(Component) // for nested page-object and control properties
+        typeof(IBindableComponent) // for nested page-object and control properties
     ];
 
     /// <summary>
@@ -23,7 +23,7 @@ internal static class PageObjectLocatorResolver
     /// </summary>
     /// <remarks>
     /// Only properties carrying a locator metadata attribute are bound; all others are ignored and keep their
-    /// default value. A bound property must be an <see cref="ILocator"/> or <see cref="Component"/> property
+    /// default value. A bound property must be an <see cref="ILocator"/> or <see cref="IBindableComponent"/> property
     /// with exactly one such attribute. Invalid property or attribute combinations throw.
     /// </remarks>
     internal static LocatorAttribute? GetBindingAttribute(Type objectType, PropertyInfo property)

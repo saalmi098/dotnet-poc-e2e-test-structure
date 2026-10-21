@@ -55,11 +55,11 @@ Locators are required by default. `Required = false` still binds the locator or 
 
 `PageObjectFactory` reflectively constructs page objects and controls, while `PageObjectBinder` assigns their attributed properties. This centralizes selector resolution, scoping, validation, and required-element waits instead of repeating that setup in each page-object constructor.
 
-Factory-created types must expose exactly one public constructor with the signature `(IPage page, ILocator? baseLocator = null)`. The binder processes attributed public properties only. They must be `ILocator` or `Component` properties with a setter and carry at most one `LocatorAttribute`; invalid declarations cause binding errors. Unattributed properties are ignored.
+Factory-created types must expose exactly one public constructor with the signature `(IPage page, ILocator? baseLocator = null)`. The binder processes attributed public properties only. They must be `ILocator` or `IBindableComponent` properties with a setter and carry at most one `LocatorAttribute`; invalid declarations cause binding errors. Unattributed properties are ignored.
 
 `PageObjectLocatorResolver` resolves each attribute using the supplied `baseLocator` as its scope, or the page when no base is given. Resolved Playwright locators stay lazy until an operation or wait uses them. During binding, required `ILocator` properties wait for their matched locator to become visible. For controls, the binder constructs the control first and waits on its resolved root instead.
 
-`Component` is the shared base for page objects and controls. It holds the `IPage`, optional parent `ILocator` scope, and required locators owned directly by that component. Its `IsReady()` checks current visibility. `PageObject` additionally tracks required child components and checks readiness recursively. Controls are leaves; required component children on controls are rejected.
+Page objects and controls are separate class hierarchies connected by `IBindableComponent`, the contract used by the factory and binder to register required locators and check readiness. Both delegate their shared page, optional parent `ILocator` scope, and required-locator state to `PageBindingContext`; page objects additionally track required child components and check readiness recursively. Controls are leaves; required component children on controls are rejected.
 
 Binding readiness is an initial wait, not navigation. `IsReady()` is a non-blocking check of current visibility; it does not wait for the UI to become ready. Page-object actions do not silently navigate.
 

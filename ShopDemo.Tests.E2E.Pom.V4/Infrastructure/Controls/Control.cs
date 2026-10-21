@@ -12,9 +12,27 @@ namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 /// Deliberately does not implement <see cref="ILocator"/>: Playwright's <c>Expect(ILocator)</c> casts to its internal
 /// locator class, so any wrapper would fail at runtime. Use <see cref="Expect"/> or <see cref="Locator"/> instead.
 /// </remarks>
-public abstract class Control(IPage page, ILocator? baseLocator = null) : Component(page, baseLocator)
+public abstract class Control(IPage page, ILocator? baseLocator = null) : IBindableComponent
 {
+    private readonly PageBindingContext _bindingContext = new(page, baseLocator);
     private ILocator? _root;
+
+    /// <summary>
+    /// The Playwright browser page used to interact with the application.
+    /// </summary>
+    protected IPage Page => _bindingContext.Page;
+
+    /// <summary>
+    /// The locator scope used to resolve this control's root.
+    /// </summary>
+    protected ILocator? BaseLocator => _bindingContext.BaseLocator;
+
+    public void AddRequiredLocator(ILocator locator) => _bindingContext.AddRequiredLocator(locator);
+
+    /// <summary>
+    /// Reports whether this control's required locator is currently visible.
+    /// </summary>
+    public Task<bool> IsReady() => _bindingContext.IsReady();
 
     /// <summary>
     /// The locator of this control's root element. Escape hatch for Playwright APIs that need an <see cref="ILocator"/>.
