@@ -55,7 +55,7 @@ Locators are required by default. `Optional = true` still binds the locator or c
 
 `PageObjectFactory` reflectively constructs page objects and controls, while `PageObjectBinder` assigns their attributed properties. This centralizes selector resolution, scoping, validation, and required-element waits instead of repeating that setup in each page-object constructor.
 
-`ShopDemoPageTestV4` uses its per-test factory to create the initial page object. Each `PageObject` owns a `PageObjectFactory` for creating nested or destination page objects; these are separate factory instances. Tests should use returned objects for transitions instead of recreating page objects for the current route.
+Application test classes derive from `ShopDemoPageTestV4<TPageObject>` and declare a `PageUrl`. During test initialization, the base navigates to that route, creates and binds the typed page object with its per-test factory, and exposes it as `Model`. This removes repeated initial `Page.GotoAsync` and `CreatePageObject<T>()` calls. Keep each class to one initial route and model; split tests into separate classes when those differ. The non-generic `ShopDemoPageTestV4` remains available for factory-focused tests and cases that need to create page objects explicitly. Each `PageObject` owns a `PageObjectFactory` for creating nested or destination page objects; these are separate factory instances. Tests should use returned objects for transitions instead of recreating page objects for the current route.
 
 Factory-created types must expose exactly one public constructor with the signature `(IPage page, ILocator? baseLocator = null)`. The binder processes attributed public properties only. They must be `ILocator` or `IBindableComponent` properties with a setter and carry at most one `LocatorAttribute`; invalid declarations cause binding errors. Unattributed properties are ignored.
 
@@ -63,11 +63,11 @@ Factory-created types must expose exactly one public constructor with the signat
 
 Page objects and controls are separate class hierarchies connected by `IBindableComponent`, the contract used by the factory and binder to register required locators and check readiness. Both delegate their shared page, optional parent `ILocator` scope, and required-locator state to `PageBindingContext`; page objects additionally track required child components and check readiness recursively. Controls are leaves; required component children on controls are rejected.
 
-Binding readiness is an initial wait, not navigation. `IsReady()` is a non-blocking check of current visibility; it does not wait for the UI to become ready. Page-object actions do not silently navigate.
+Binding readiness is an initial wait, not navigation. The generic test base binds `Model` before the test body runs, waiting for required locators. `IsReady()` is a non-blocking check of current visibility; it can assert readiness but does not wait for the UI to become ready. Page-object actions do not silently navigate.
 
 ## Tests and coverage
 
-`PomJourneysTests` exercises application journeys and typed controls against the running ShopDemo application, including catalog search/filter, login, tab switching, and inventory-grid pagination. Live page-object attributes primarily use test IDs; `ShopNavigation` also binds its app bar with CSS.
+`ShopNavigationJourneyTests`, `CatalogPageTests`, `LoginPageTests`, `GuestInventoryRedirectTests`, and `ProductDetailsTests` exercise application journeys and typed controls against the running ShopDemo application. The test classes use the generic base with the page object and route appropriate to their initial state. Live page-object attributes primarily use test IDs; `ShopNavigation` also binds its app bar with CSS.
 
 `PageObjectFactoryTests` uses browser-rendered `SetContentAsync` markup to exercise all five locator kinds, parent scoping, exact role/text matching, required and optional readiness, control-root resolution, and binding failures. Role, Text, and XPath strategies are covered by these focused tests, not by attributes against live ShopDemo markup.
 

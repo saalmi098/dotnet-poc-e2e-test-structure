@@ -6,11 +6,11 @@ Use this guide when adding an end-to-end journey or the page objects and control
 
 ## Project boundary and structure
 
-POM V4 is an independent xUnit v3 project. It references `ShopDemo.Tests.E2E.Shared` for `ShopDemoPageTest`, browser setup, test settings, and demo accounts. Keep V4 journeys and page objects in V4; do not reuse POM V1's page objects or `PomPages` wrapper, or page objects from another POM version.
+POM V4 is an independent xUnit v3 project. It references `ShopDemo.Tests.E2E.Shared` for shared test settings, the base URL, and demo accounts. Keep V4 journeys and page objects in V4; do not reuse POM V1's page objects or `PomPages` wrapper, or page objects from another POM version.
 
 | Location | Add or update this when... |
 | --- | --- |
-| `PomJourneysTests.cs` | Adding an end-to-end user journey. |
+| `*Tests.cs` | Adding page-focused end-to-end tests. Group tests by their initial page object and route; use separate classes when either differs. |
 | `PageObjectFactoryTests.cs` | Testing factory, binder, locator, scope, control-root, or readiness behavior. |
 | `POM/` | Adding a page object or reusable application section used by a journey. |
 | `Infrastructure/POM/` | Changing the factory, binder, locator resolution, or page-object base. |
@@ -26,32 +26,35 @@ The current page-object map is:
 
 ## Default approach
 
-When generating a test, use this path first. Start by checking the closest existing journey and page object, then inspect the application markup for stable selectors. Add a journey to `PomJourneysTests`, use the shared test setup and test data, and expose stable UI elements through attributed page-object properties. Prefer existing typed controls for common interactions. Keep the test focused on the user-visible workflow, not the selector or component implementation.
+When adding a test, check the closest existing test class and page object, then inspect the application markup for stable selectors. For application tests, inherit from `ShopDemoPageTestV4<TPageObject>` and group tests in the same class only when they share an initial route and page-object type. The base navigates and binds `Model` before each test. Use the non-generic `ShopDemoPageTestV4` with explicit `CreatePageObject<T>()` calls for factory-focused tests or cases that need custom page-object creation. Expose stable UI elements through attributed page-object properties, prefer existing typed controls, and keep the test focused on user-visible behavior rather than selector or component implementation.
 
 Use a stable `data-testid` as the default locator strategy. Use role or exact text locators when they express the UI target more clearly and reliably. Use CSS or XPath only when a stable test ID or suitable semantic locator is unavailable. Prefer existing controls such as `Button`, `TextField`, `Select`, `Tab`, `DataGrid`, and `DataGridPager` over repeating their low-level interactions.
 
 ## Add an end-to-end journey
 
-1. Add a `[Fact]` to `PomJourneysTests` and use its existing `ShopDemoPageTest` setup.
-2. Navigate explicitly to the starting route with `Page.GotoAsync`, or start from a page object and activate a real UI transition.
-3. Create the initial page object with the test base's `CreatePageObject<T>()`; use `E2ETestSettings` and `DemoAccount` for known test data.
-4. Perform actions through page-object methods or typed controls, then assert on the resulting UI with Playwright assertions or xUnit.
+1. Choose the initial page-object type and route, then add the test to a class derived from `ShopDemoPageTestV4<TPageObject>`.
+2. Implement `PageUrl`; the base navigates there and binds `Model` before the test starts.
+3. Use `E2ETestSettings` and `DemoAccount` for known test data.
+4. Perform actions through `Model`, page-object methods, or typed controls, then assert on the resulting UI with Playwright assertions or xUnit.
 
 For example, the existing catalog search journey follows the standard pattern:
 
 ```csharp
-[Fact]
-public async Task Catalog_can_be_searched_through_the_text_field_control()
+public sealed class CatalogPageTests : ShopDemoPageTestV4<CatalogPage>
 {
-    await Page.GotoAsync("/");
-    var catalog = await CreatePageObject<CatalogPage>();
-    await catalog.ProductCards.First.WaitForAsync();
+    protected override string PageUrl => "/";
 
-    await catalog.SearchFor("Tote");
+    [Fact]
+    public async Task Catalog_can_be_searched_through_the_text_field_control()
+    {
+        await Model.ProductCards.First.WaitForAsync();
 
-    await Expect(catalog.GetProductCard(E2ETestSettings.CanvasToteId)).ToBeVisibleAsync();
-    Assert.Equal("Tote", await catalog.Search.GetValue());
-    await Expect(catalog.ProductCards).ToHaveCountAsync(1);
+        await Model.SearchFor("Tote");
+
+        await Expect(Model.GetProductCard(E2ETestSettings.CanvasToteId)).ToBeVisibleAsync();
+        Assert.Equal("Tote", await Model.Search.GetValue());
+        await Expect(Model.ProductCards).ToHaveCountAsync(1);
+    }
 }
 ```
 
@@ -93,7 +96,7 @@ Expose page-level operations as methods that describe the user action, and keep 
 
 When `baseLocator` is null, attributes resolve from the `IPage`; otherwise they resolve within that locator. Nested page objects should receive the locator for their parent section so their properties cannot accidentally match elements elsewhere on the page.
 
-Use the test base's `CreatePageObject<T>()` once to bootstrap a test's initial page object. After that, use page-object methods for navigation and continue with the returned page objects instead of creating another object for the current route. Inside a page object, use the protected `CreatePageObject<T>(scope)` method to construct and bind a nested page object. For a tab transition, the parent page object should select the tab first and then create the tab object scoped to its panel. Do not switch tabs through application-specific test hooks. Do not construct attributed page objects directly with `new`; use the factory or `CreatePageObject<T>` so their properties are bound and required locators are waited for.
+Use the generic test base's `Model` as the initial page object; do not create the same initial object again. After that, use page-object methods for navigation and continue with returned objects instead of creating another object for the current route. Inside a page object, use its protected `CreatePageObject<T>(scope)` method to construct and bind a nested page object. For a tab transition, the parent page object should select the tab first and then create the tab object scoped to its panel. Do not switch tabs through application-specific test hooks. Do not construct attributed page objects directly with `new`; use the factory or `CreatePageObject<T>` so their properties are bound and required locators are waited for.
 
 ## Exceptional cases
 

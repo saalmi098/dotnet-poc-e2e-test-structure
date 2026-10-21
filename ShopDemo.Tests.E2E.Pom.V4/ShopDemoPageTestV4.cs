@@ -5,6 +5,7 @@ using ShopDemo.Tests.E2E.Shared;
 
 namespace ShopDemo.Tests.E2E.Pom.V4;
 
+// TODO: remove V4 from the name of the class (use default ShopDemoPageTest and integrate the changes from here)
 public abstract class ShopDemoPageTestV4 : PageTest
 {
     private readonly PageObjectFactory _factory = new();
@@ -20,4 +21,28 @@ public abstract class ShopDemoPageTestV4 : PageTest
         BaseURL = E2ETestSettings.BaseUrl,
         ViewportSize = new ViewportSize { Width = 1365, Height = 900 }
     };
+}
+
+public abstract class ShopDemoPageTestV4<TPageObject> : ShopDemoPageTestV4
+    where TPageObject : PageObject
+{
+    private TPageObject? _model;
+
+    /// <summary>
+    /// Gets the initial page object after test initialization has navigated and bound it.
+    /// </summary>
+    protected TPageObject Model => _model
+        ?? throw new InvalidOperationException("The initial page object is not available before test initialization completes.");
+
+    /// <summary>
+    /// Gets the application-relative route to open before binding <see cref="Model"/>.
+    /// </summary>
+    protected abstract string PageUrl { get; }
+
+    public override async ValueTask InitializeAsync()
+    {
+        await base.InitializeAsync();
+        await Page.GotoAsync(PageUrl);
+        _model = await CreatePageObject<TPageObject>();
+    }
 }
