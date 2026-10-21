@@ -7,10 +7,8 @@ using Xunit;
 
 namespace ShopDemo.Tests.E2E.Pom.V4;
 
-public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTest
+public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTestV4
 {
-    private readonly PageObjectFactory _factory = new();
-
     [Fact]
     public async Task Manager_can_restock_then_review_shopper_order()
     {
@@ -18,18 +16,18 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
         var inventory = await navigation.Bar.OpenInventory();
         await inventory.UpdateStock(E2ETestSettings.CanvasToteId, 4);
 
-        navigation = await _factory.Create<ShopNavigation>(Page);
+        navigation = await CreatePageObject<ShopNavigation>();
         navigation = await navigation.Bar.SignOut();
         var shopperLogin = await navigation.Bar.OpenLogin();
         navigation = await shopperLogin.SignIn(E2ETestSettings.Shopper);
 
         var catalog = await navigation.Bar.OpenCatalog();
         await catalog.AddProductToCart(E2ETestSettings.CanvasToteId);
-        var cart = await (await _factory.Create<ShopNavigation>(Page)).Bar.OpenCart();
+        var cart = await (await CreatePageObject<ShopNavigation>()).Bar.OpenCart();
         var checkout = await cart.ProceedToCheckout();
         var orderNumber = await checkout.PlaceOrder("Sample Shopper", E2ETestSettings.Shopper.Email);
 
-        navigation = await _factory.Create<ShopNavigation>(Page);
+        navigation = await CreatePageObject<ShopNavigation>();
         navigation = await navigation.Bar.SignOut();
         var managerLogin = await navigation.Bar.OpenLogin();
         navigation = await managerLogin.SignIn(E2ETestSettings.StoreManager);
@@ -42,7 +40,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     public async Task Catalog_can_be_filtered_by_category_through_the_select_control()
     {
         await Page.GotoAsync("/");
-        var catalog = await _factory.Create<CatalogPage>(Page);
+        var catalog = await CreatePageObject<CatalogPage>();
         await catalog.ProductCards.First.WaitForAsync();
         var allProducts = await catalog.ProductCards.CountAsync();
 
@@ -63,7 +61,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     public async Task Catalog_can_be_searched_through_the_text_field_control()
     {
         await Page.GotoAsync("/");
-        var catalog = await _factory.Create<CatalogPage>(Page);
+        var catalog = await CreatePageObject<CatalogPage>();
         await catalog.ProductCards.First.WaitForAsync();
 
         await catalog.SearchFor("Tote");
@@ -81,7 +79,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     public async Task Login_page_controls_are_bound_and_ready()
     {
         await Page.GotoAsync("/login");
-        var login = await _factory.Create<LoginPage>(Page);
+        var login = await CreatePageObject<LoginPage>();
 
         Assert.True(await login.IsReady());
         await login.Email.Fill(E2ETestSettings.Shopper.Email);
@@ -95,7 +93,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     {
         await Page.GotoAsync("/manage/inventory");
 
-        var login = await _factory.Create<LoginPage>(Page);
+        var login = await CreatePageObject<LoginPage>();
         Assert.True(await login.Form.IsVisibleAsync());
         Assert.False(await Page.GetByTestId("inventory-page").IsVisibleAsync());
     }
@@ -107,11 +105,11 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
         var catalog = await navigation.Bar.OpenCatalog();
         await catalog.AddProductToCart("field-notebook");
 
-        var cart = await (await _factory.Create<ShopNavigation>(Page)).Bar.OpenCart();
+        var cart = await (await CreatePageObject<ShopNavigation>()).Bar.OpenCart();
         var checkout = await cart.ProceedToCheckout();
         var orderNumber = await checkout.PlaceOrder("Sample Shopper", E2ETestSettings.Shopper.Email);
 
-        navigation = await _factory.Create<ShopNavigation>(Page);
+        navigation = await CreatePageObject<ShopNavigation>();
         var orders = await navigation.Bar.OpenOrders();
         Assert.True(await orders.ContainsOrder(orderNumber));
     }
@@ -127,7 +125,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     public async Task Product_details_tabs_bind_fields_after_parent_activates_them()
     {
         await Page.GotoAsync("/");
-        var catalog = await _factory.Create<CatalogPage>(Page);
+        var catalog = await CreatePageObject<CatalogPage>();
         var product = await catalog.OpenProductDetails(E2ETestSettings.CanvasToteId);
 
         // the Tab control resolves its root to the enclosing role=tab element of the labelled span
@@ -169,7 +167,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     public async Task Product_inventory_grid_can_be_read_and_paged_through_grid_controls()
     {
         await Page.GotoAsync("/");
-        var catalog = await _factory.Create<CatalogPage>(Page);
+        var catalog = await CreatePageObject<CatalogPage>();
         var product = await catalog.OpenProductDetails(E2ETestSettings.CanvasToteId);
         await product.SwitchToOverviewTab();
         await product.OverviewTab.Expect().ToHaveAttributeAsync("aria-selected", "true");
@@ -200,7 +198,7 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
     private async Task<ShopNavigation> SignIn(DemoAccount account)
     {
         await Page.GotoAsync("/");
-        var navigation = await _factory.Create<ShopNavigation>(Page);
+        var navigation = await CreatePageObject<ShopNavigation>();
         var login = await navigation.Bar.OpenLogin();
         return await login.SignIn(account);
     }

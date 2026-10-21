@@ -1,4 +1,4 @@
-**// TODO: document needs to be reviewed**
+﻿**// TODO: document needs to be reviewed**
 
 # Adding tests to ShopDemo POM V4
 
@@ -44,7 +44,7 @@ For example, the existing catalog search journey follows the standard pattern:
 public async Task Catalog_can_be_searched_through_the_text_field_control()
 {
     await Page.GotoAsync("/");
-    var catalog = await _factory.Create<CatalogPage>(Page);
+    var catalog = await CreatePageObject<CatalogPage>();
     await catalog.ProductCards.First.WaitForAsync();
 
     await catalog.SearchFor("Tote");

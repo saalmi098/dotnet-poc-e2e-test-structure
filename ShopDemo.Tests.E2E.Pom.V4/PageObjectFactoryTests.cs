@@ -2,12 +2,11 @@
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
-using ShopDemo.Tests.E2E.Shared;
 using Xunit;
 
 namespace ShopDemo.Tests.E2E.Pom.V4;
 
-public sealed class PageObjectFactoryTests : ShopDemoPageTest
+public sealed class PageObjectFactoryTests : ShopDemoPageTestV4
 {
     [Fact]
     public async Task Binds_each_locator_strategy_scoped_to_its_parent()
@@ -24,7 +23,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
             </main>
             """);
 
-        var probe = await new PageObjectFactory().Create<LocatorProbe>(Page);
+        var probe = await CreatePageObject<LocatorProbe>();
 
         Assert.True(await probe.IsReady());
         Assert.Equal("Save probe", await probe.Content.Button.InnerTextAsync());
@@ -47,7 +46,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
             </main>
             """);
 
-        var probe = await new PageObjectFactory().Create<LocatorProbe>(Page);
+        var probe = await CreatePageObject<LocatorProbe>();
 
         Assert.True(await probe.IsReady());
         await probe.Content.Button.EvaluateAsync("element => element.style.visibility = 'hidden'");
@@ -64,7 +63,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
             </main>
             """);
 
-        var probe = await new PageObjectFactory().Create<ControlProbePage>(Page);
+        var probe = await CreatePageObject<ControlProbePage>();
 
         Assert.True(await probe.IsReady());
         await probe.Required.Expect().ToHaveTextAsync("Control probe");
@@ -76,7 +75,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
     {
         await Page.SetContentAsync("""<main data-testid="control-probe-parent"><span data-testid="control-probe">x</span></main>""");
 
-        var probe = await new PageObjectFactory().Create<ControlProbePage>(Page);
+        var probe = await CreatePageObject<ControlProbePage>();
 
         Assert.True(await probe.IsReady());
         Assert.Equal(0, await probe.Optional.Locator.CountAsync());
@@ -89,7 +88,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
             <div class="wrapper"><input type="hidden" data-testid="hidden-matched"><span>Visible root</span></div>
             """);
 
-        var probe = await new PageObjectFactory().Create<RootResolvingProbePage>(Page);
+        var probe = await CreatePageObject<RootResolvingProbePage>();
 
         Assert.True(await probe.IsReady());
         await probe.Field.Expect().ToBeVisibleAsync();
@@ -101,7 +100,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
     {
         await Page.SetContentAsync("<main></main>");
 
-        var probe = await new PageObjectFactory().Create<UnattributedProbe>(Page);
+        var probe = await CreatePageObject<UnattributedProbe>();
 
         Assert.Null(probe.Unbound);
         Assert.Null(probe.UnboundControl);
@@ -114,7 +113,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
         Page.SetDefaultTimeout(250);
 
         var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
-            () => new PageObjectFactory().Create<ControlProbePage>(Page));
+            () => CreatePageObject<ControlProbePage>());
 
         Assert.Contains(nameof(ControlProbePage), exception.Message);
         Assert.Contains(nameof(ControlProbePage.Required), exception.Message);
@@ -128,7 +127,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
         Page.SetDefaultTimeout(250);
 
         var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
-            () => new PageObjectFactory().Create<MissingRequiredProbe>(Page));
+            () => CreatePageObject<MissingRequiredProbe>());
 
         Assert.Contains(nameof(MissingRequiredProbe), exception.Message);
         Assert.Contains(nameof(MissingRequiredProbe.Missing), exception.Message);
@@ -141,7 +140,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
         await Page.SetContentAsync("<p>text probe</p>");
 
         var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
-            () => new PageObjectFactory().Create<InvalidLocatorOptionsProbe>(Page));
+            () => CreatePageObject<InvalidLocatorOptionsProbe>());
 
         Assert.Contains("Name option is only supported", exception.Message);
     }
@@ -150,7 +149,7 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTest
     public async Task Factory_rejects_unsupported_constructor_conventions()
     {
         var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
-            () => new PageObjectFactory().Create<UnsupportedConstructorProbe>(Page));
+            () => CreatePageObject<UnsupportedConstructorProbe>());
 
         Assert.Contains(nameof(UnsupportedConstructorProbe), exception.Message);
         Assert.Contains("(IPage page, ILocator? baseLocator = null)", exception.Message);
