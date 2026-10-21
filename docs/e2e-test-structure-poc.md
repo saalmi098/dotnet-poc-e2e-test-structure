@@ -148,6 +148,7 @@ public sealed class LoginPage(IPage page, ILocator? baseLocator = null)
 - Keeps V2's attribute binding, factory, and page-object structure.
 - Adds reusable controls such as `TextField`, `Button`, `Select`, and `DataGrid`.
 - Encapsulates recurring interaction details and MudBlazor-specific locator behavior.
+- Declares bound properties with `required init` instead of `null!`. Locators are required by default; `[Locator(..., Optional = true)]` keeps the property bound but skips its initial visibility wait and the owning page's readiness requirement.
 - Tests can use controls directly and keep Playwright's retrying assertions where useful.
 - **Added value:** common control behavior is centralized and test calls become more intention-revealing.
 - **Trade-off / status:** another abstraction layer must be maintained. The project is marked as a work in progress.
@@ -157,7 +158,7 @@ public sealed class LoginPage(IPage page, ILocator? baseLocator = null)
     : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "login-email")]
-    public TextField Email { get; private set; } = null!;
+    public required TextField Email { get; init; }
 }
 
 await login.Email.Fill(account.Email);
@@ -205,5 +206,6 @@ V3 is best read as an alternative design experiment, not as a direct continuatio
 - [V1 journey and page objects](../ShopDemo.Tests.E2E.Pom.V1/ManagerRestocksShopperOrdersTests.cs)
 - [V2 binder and page objects](../ShopDemo.Tests.E2E.Pom.V2/Infrastructure/POM/PageObjectBinder.cs)
 - [V4 typed controls](../ShopDemo.Tests.E2E.Pom.V4/Infrastructure/Controls)
+- [V4 test-creation guide](../ShopDemo.Tests.E2E.Pom.V4/docs/test-creation-guide.md)
 - [Screenplay journey](../ShopDemo.Tests.E2E.Screenplay/ManagerRestocksShopperOrdersTests.cs)
 - [Repository overview and run instructions](../README.md)

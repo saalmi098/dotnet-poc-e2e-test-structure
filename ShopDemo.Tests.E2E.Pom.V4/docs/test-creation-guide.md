@@ -61,6 +61,8 @@ Use `control.Expect()` for assertions on a typed control and `Expect(locator)` f
 
 Page objects must have exactly one public constructor with the signature `(IPage page, ILocator? baseLocator = null)`. The factory constructs the object and binds its attributed properties before returning it.
 
+Declare bound reference properties as `required` with an `init` setter. The factory assigns them during binding, avoiding `null!` while making the non-null member contract explicit. This C# `required` modifier is separate from `LocatorAttribute.Optional`, which controls whether the UI element must be visible during binding and readiness checks.
+
 ```csharp
 public sealed class ExamplePage(IPage page, ILocator? baseLocator = null)
     : PageObject(page, baseLocator)
