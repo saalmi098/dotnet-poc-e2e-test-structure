@@ -43,13 +43,13 @@ Example declarations:
 
 ```csharp
 [Locator(LocatorKind.DataTestId, "login-email")]
-public TextField Email { get; private set; } = null!;
+public required TextField Email { get; init; }
 
 [Locator(LocatorKind.Role, "button", Name = "Save")]
-public Button Save { get; private set; } = null!;
+public required Button Save { get; init; }
 ```
 
-Locators are required by default. `Required = false` still binds the locator or control but skips its initial visibility wait and does not make it a readiness requirement of the owning page object. `Name` is supported only for role locators. Role accessible-name and text matching are always exact; there is no attribute option to weaken that behavior.
+Locators are required by default. `Optional = true` still binds the locator or control but skips its initial visibility wait and does not make it a readiness requirement of the owning page object. `Name` is supported only for role locators. Role accessible-name and text matching are always exact; there is no attribute option to weaken that behavior.
 
 ## Object creation, binding, and readiness
 

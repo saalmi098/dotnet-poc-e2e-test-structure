@@ -41,7 +41,7 @@ internal static class PageObjectBinder
             }
 
             var locator = PageObjectLocatorResolver.ResolveLocator(page, baseLocator, attribute);
-            var wait = attribute.Required && waitForRequiredLocators;
+            var wait = !attribute.Optional && waitForRequiredLocators;
 
             // Usually locator attributes match the visible element, so the binder can wait immediately.
             // But: Some controls may map an internal match to a different visible root; for example, MudSelect puts
@@ -58,7 +58,7 @@ internal static class PageObjectBinder
                 // bind locator property
                 property.SetValue(instance, locator);
 
-                if (attribute.Required)
+                if (!attribute.Optional)
                 {
                     instance.AddRequiredLocator(locator);
                 }
@@ -81,7 +81,7 @@ internal static class PageObjectBinder
                     control.AddRequiredLocator(control.Locator);
                 }
 
-                if (attribute.Required)
+                if (!attribute.Optional)
                 {
                     if (instance is not PageObject pageObject)
                     {

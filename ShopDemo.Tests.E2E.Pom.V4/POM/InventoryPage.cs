@@ -8,7 +8,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 public sealed class InventoryPage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "inventory-page")]
-    public ILocator Root { get; private set; } = null!;
+    public required ILocator Root { get; init; }
 
     public async Task UpdateStock(string productId, int stock)
     {

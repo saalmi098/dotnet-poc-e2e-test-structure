@@ -8,19 +8,19 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 public sealed class CheckoutPage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "checkout-form")]
-    public ILocator Form { get; private set; } = null!;
+    public required ILocator Form { get; init; }
 
     [Locator(LocatorKind.DataTestId, "checkout-name")]
-    public TextField Name { get; private set; } = null!;
+    public required TextField Name { get; init; }
 
     [Locator(LocatorKind.DataTestId, "checkout-email")]
-    public TextField Email { get; private set; } = null!;
+    public required TextField Email { get; init; }
 
     [Locator(LocatorKind.DataTestId, "checkout-confirm")]
-    public Button Confirm { get; private set; } = null!;
+    public required Button Confirm { get; init; }
 
-    [Locator(LocatorKind.DataTestId, "checkout-order-number", Required = false)]
-    public ILocator OrderNumber { get; private set; } = null!;
+    [Locator(LocatorKind.DataTestId, "checkout-order-number", Optional = true)]
+    public required ILocator OrderNumber { get; init; }
 
     public async Task<string> PlaceOrder(string customerName, string email)
     {

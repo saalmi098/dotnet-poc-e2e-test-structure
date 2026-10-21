@@ -158,25 +158,25 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTestV4
     private sealed class LocatorProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
         [Locator(LocatorKind.DataTestId, "probe-parent")]
-        public LocatorProbeContent Content { get; private set; } = null!;
+        public required LocatorProbeContent Content { get; init; }
     }
 
     private sealed class LocatorProbeContent(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
         [Locator(LocatorKind.Role, "button", Name = "Save probe")]
-        public ILocator Button { get; private set; } = null!;
+        public required ILocator Button { get; init; }
 
         [Locator(LocatorKind.Text, "Text probe")]
-        public ILocator Text { get; private set; } = null!;
+        public required ILocator Text { get; init; }
 
         [Locator(LocatorKind.Css, ".css-probe")]
-        public ILocator Css { get; private set; } = null!;
+        public required ILocator Css { get; init; }
 
         [Locator(LocatorKind.XPath, ".//span[@data-probe='xpath']")]
-        public ILocator XPath { get; private set; } = null!;
+        public required ILocator XPath { get; init; }
 
-        [Locator(LocatorKind.DataTestId, "optional-probe", Required = false)]
-        public ILocator Optional { get; private set; } = null!;
+        [Locator(LocatorKind.DataTestId, "optional-probe", Optional = true)]
+        public required ILocator Optional { get; init; }
     }
 
     private sealed class ProbeControl(IPage page, ILocator? baseLocator = null) : Control(page, baseLocator);
@@ -184,10 +184,10 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTestV4
     private sealed class ControlProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
         [Locator(LocatorKind.DataTestId, "control-probe")]
-        public ProbeControl Required { get; private set; } = null!;
+        public required ProbeControl Required { get; init; }
 
-        [Locator(LocatorKind.DataTestId, "optional-control-probe", Required = false)]
-        public ProbeControl Optional { get; private set; } = null!;
+        [Locator(LocatorKind.DataTestId, "optional-control-probe", Optional = true)]
+        public required ProbeControl Optional { get; init; }
     }
 
     private sealed class RootResolvingControl(IPage page, ILocator? baseLocator = null) : Control(page, baseLocator)
@@ -198,31 +198,37 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTestV4
     private sealed class RootResolvingProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
         [Locator(LocatorKind.DataTestId, "hidden-matched")]
-        public RootResolvingControl Field { get; private set; } = null!;
+        public required RootResolvingControl Field { get; init; }
     }
 
     private sealed class UnattributedProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
+#pragma warning disable S3459 // Unassigned members should be removed
+#pragma warning disable S1144 // Unused private types or members should be removed
         public ILocator? Unbound { get; private set; }
 
         public ProbeControl? UnboundControl { get; private set; }
+#pragma warning restore S1144 // Unused private types or members should be removed
+#pragma warning restore S3459 // Unassigned members should be removed
     }
 
     private sealed class MissingRequiredProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
         [Locator(LocatorKind.DataTestId, "missing-required-probe")]
-        public ILocator Missing { get; private set; } = null!;
+        public required ILocator Missing { get; init; }
     }
 
     private sealed class InvalidLocatorOptionsProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
     {
         [Locator(LocatorKind.Text, "text probe", Name = "not a role")]
-        public ILocator Invalid { get; private set; } = null!;
+        public required ILocator Invalid { get; init; }
     }
 
+#pragma warning disable CS9113 // Parameter is unread.
     private sealed class UnsupportedConstructorProbe(IPage page, string selector) : PageObject(page)
+#pragma warning restore CS9113 // Parameter is unread.
     {
         [Locator(LocatorKind.DataTestId, "unsupported-constructor-probe")]
-        public ILocator Element { get; private set; } = null!;
+        public required ILocator Element { get; init; }
     }
 }

@@ -17,10 +17,11 @@ public sealed class LocatorAttribute(LocatorKind kind, string selector) : Attrib
     public string Selector { get; } = selector;
 
     /// <summary>
-    /// Whether the locator is required to become visible during binding and included in readiness checks.
-    /// Defaults to <see langword="true"/>.
+    /// Whether the locator may be absent during binding without blocking readiness.
+    /// The property is still bound when the locator matches no element.
+    /// Defaults to <see langword="false"/>.
     /// </summary>
-    public bool Required { get; set; } = true;
+    public bool Optional { get; set; }
 
     /// <summary>
     /// The exact accessible name to match for a <see cref="LocatorKind.Role"/> locator. Not supported by other kinds.

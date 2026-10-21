@@ -8,13 +8,13 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 public sealed class CatalogPage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "catalog-page")]
-    public ILocator Root { get; private set; } = null!;
+    public required ILocator Root { get; init; }
 
     [Locator(LocatorKind.DataTestId, "catalog-search")]
-    public TextField Search { get; private set; } = null!;
+    public required TextField Search { get; init; }
 
     [Locator(LocatorKind.DataTestId, "catalog-category")]
-    public Select Category { get; private set; } = null!;
+    public required Select Category { get; init; }
 
     public Task SearchFor(string text) => Search.Fill(text);
 

@@ -8,19 +8,19 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 public sealed class ProductDetailsInventoryTab(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "product-inventory-id")]
-    public ILocator ProductId { get; private set; } = null!;
+    public required ILocator ProductId { get; init; }
 
     [Locator(LocatorKind.DataTestId, "product-inventory-stock")]
-    public ILocator Stock { get; private set; } = null!;
+    public required ILocator Stock { get; init; }
 
     [Locator(LocatorKind.DataTestId, "product-inventory-availability")]
-    public ILocator Availability { get; private set; } = null!;
+    public required ILocator Availability { get; init; }
 
     [Locator(LocatorKind.DataTestId, "product-inventory-grid")]
-    public DataGrid Grid { get; private set; } = null!;
+    public required DataGrid Grid { get; init; }
 
     [Locator(LocatorKind.DataTestId, "product-inventory-pager")]
-    public DataGridPager Pager { get; private set; } = null!;
+    public required DataGridPager Pager { get; init; }
 
     /// <summary>
     /// The column headers of the inventory grid.

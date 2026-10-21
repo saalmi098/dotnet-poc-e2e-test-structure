@@ -66,14 +66,14 @@ public sealed class ExamplePage(IPage page, ILocator? baseLocator = null)
     : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "example-page")]
-    public ILocator Root { get; private set; } = null!;
+    public required ILocator Root { get; init; }
 
     [Locator(LocatorKind.Role, "button", Name = "Save")]
-    public Button Save { get; private set; } = null!;
+    public required Button Save { get; init; }
 }
 ```
 
-Every auto-bound public property must have exactly one `Locator` attribute, be an `ILocator` or `IBindableComponent` type (including a typed control), and have a setter. Properties without an attribute are ignored. Keep the property non-nullable: `Required = false` means the UI element can be absent, not that the bound locator or control object is null.
+Every auto-bound public property must have exactly one `Locator` attribute, be an `ILocator` or `IBindableComponent` type (including a typed control), and have a setter. Properties without an attribute are ignored. Keep the property non-nullable: `Optional = true` means the UI element can be absent, not that the bound locator or control object is null.
 
 | Locator declaration | Use |
 | --- | --- |
@@ -83,7 +83,7 @@ Every auto-bound public property must have exactly one `Locator` attribute, be a
 | `[Locator(LocatorKind.Css, ".mud-appbar")]` | Use a stable CSS selector when a test ID or semantic locator is unsuitable. |
 | `[Locator(LocatorKind.XPath, ".//button[@type='submit']")]` | Use XPath only when simpler stable strategies do not fit. |
 
-Locators are required by default. `Required = false` keeps the property bound but skips its initial visibility wait and does not add the property to its owning page object's readiness requirements. Use it for elements that are intentionally absent in some states, such as role-dependent navigation links—not to hide a missing required element. `Name` is only valid for role locators; role accessible-name and text matching are always exact.
+Locators are required by default. `Optional = true` keeps the property bound but skips its initial visibility wait and does not add the property to its owning page object's readiness requirements. Use it for elements that are intentionally absent in some states, such as role-dependent navigation links—not to hide a missing required element. `Name` is only valid for role locators; role accessible-name and text matching are always exact.
 
 Expose page-level operations as methods that describe the user action, and keep locator details inside the page object. Asynchronous methods omit the `Async` suffix, following the existing V4 API. Creating a page object does not navigate; methods should click or otherwise use the real UI when they represent a transition.
 

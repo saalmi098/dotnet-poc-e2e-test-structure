@@ -7,7 +7,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 public sealed class OrdersPage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "orders-page")]
-    public ILocator Root { get; private set; } = null!;
+    public required ILocator Root { get; init; }
 
     public async Task<bool> ContainsOrder(string orderNumber) =>
         await Root.GetByTestId($"order-card-{orderNumber}").CountAsync() > 0;

@@ -8,28 +8,28 @@ namespace ShopDemo.Tests.E2E.Pom.V4.POM;
 public sealed class ShopNavigation(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.Css, ".mud-appbar")]
-    public NavigationBar Bar { get; private set; } = null!;
+    public required NavigationBar Bar { get; init; }
 }
 
 public sealed class NavigationBar(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
 {
     [Locator(LocatorKind.DataTestId, "nav-catalog-desktop")]
-    public Button CatalogLink { get; private set; } = null!;
+    public required Button CatalogLink { get; init; }
 
     [Locator(LocatorKind.DataTestId, "nav-cart-desktop")]
-    public Button CartLink { get; private set; } = null!;
+    public required Button CartLink { get; init; }
 
-    [Locator(LocatorKind.DataTestId, "nav-login-desktop", Required = false)]
-    public Button LoginLink { get; private set; } = null!;
+    [Locator(LocatorKind.DataTestId, "nav-login-desktop", Optional = true)]
+    public required Button LoginLink { get; init; }
 
-    [Locator(LocatorKind.DataTestId, "nav-inventory-desktop", Required = false)]
-    public Button InventoryLink { get; private set; } = null!;
+    [Locator(LocatorKind.DataTestId, "nav-inventory-desktop", Optional = true)]
+    public required Button InventoryLink { get; init; }
 
-    [Locator(LocatorKind.DataTestId, "nav-orders-desktop", Required = false)]
-    public Button OrdersLink { get; private set; } = null!;
+    [Locator(LocatorKind.DataTestId, "nav-orders-desktop", Optional = true)]
+    public required Button OrdersLink { get; init; }
 
-    [Locator(LocatorKind.DataTestId, "nav-logout-desktop", Required = false)]
-    public Button LogoutLink { get; private set; } = null!;
+    [Locator(LocatorKind.DataTestId, "nav-logout-desktop", Optional = true)]
+    public required Button LogoutLink { get; init; }
 
     public async Task<LoginPage> OpenLogin()
     {
