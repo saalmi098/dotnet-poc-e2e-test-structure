@@ -34,37 +34,37 @@ public sealed class NavigationBar(IPage page, ILocator? baseLocator = null) : Pa
     public async Task<LoginPage> OpenLogin()
     {
         await LoginLink.Click();
-        return await Create<LoginPage>();
+        return await CreatePageObject<LoginPage>();
     }
 
     public async Task<CatalogPage> OpenCatalog()
     {
         await CatalogLink.Click();
-        return await Create<CatalogPage>();
+        return await CreatePageObject<CatalogPage>();
     }
 
     public async Task<CartPage> OpenCart()
     {
         await CartLink.Click();
-        return await Create<CartPage>();
+        return await CreatePageObject<CartPage>();
     }
 
     public async Task<InventoryPage> OpenInventory()
     {
         await InventoryLink.Click();
-        return await Create<InventoryPage>();
+        return await CreatePageObject<InventoryPage>();
     }
 
     public async Task<OrdersPage> OpenOrders()
     {
         await OrdersLink.Click();
-        return await Create<OrdersPage>();
+        return await CreatePageObject<OrdersPage>();
     }
 
     public async Task<ShopNavigation> SignOut()
     {
         await LogoutLink.Click();
         await LoginLink.Expect().ToBeVisibleAsync();
-        return await Create<ShopNavigation>();
+        return await CreatePageObject<ShopNavigation>();
     }
 }

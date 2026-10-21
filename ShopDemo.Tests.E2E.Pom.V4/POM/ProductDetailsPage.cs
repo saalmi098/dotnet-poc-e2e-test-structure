@@ -24,7 +24,7 @@ public sealed class ProductDetailsPage(IPage page, ILocator? baseLocator = null)
         var panel = Page.GetByTestId("product-overview-panel");
 
         E2ETrace.Write(typeof(ProductDetailsPage), "Creating the scoped Overview tab page object.");
-        var overview = await Create<ProductDetailsOverviewTab>(panel);
+        var overview = await CreatePageObject<ProductDetailsOverviewTab>(panel);
 
         E2ETrace.Write(typeof(ProductDetailsPage), "Overview tab page object is ready.");
         return overview;
@@ -39,7 +39,7 @@ public sealed class ProductDetailsPage(IPage page, ILocator? baseLocator = null)
         E2ETrace.Write(
             typeof(ProductDetailsPage),
             "Creating the scoped Inventory tab page object; required locators may wait for loaded data.");
-        var inventory = await Create<ProductDetailsInventoryTab>(panel);
+        var inventory = await CreatePageObject<ProductDetailsInventoryTab>(panel);
 
         E2ETrace.Write(typeof(ProductDetailsPage), "Inventory tab page object is ready.");
         return inventory;

@@ -4,7 +4,8 @@ using System.Reflection;
 namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
 /// <summary>
-/// Creates <see cref="PageObject"/> instances using reflection, binds their annotated properties, and waits for required locators.
+/// Creates page objects and their nested bindable components using reflection, binds their annotated
+/// properties, and waits for required locators.
 /// </summary>
 /// <remarks>
 /// Bindable types must expose exactly one public constructor with signature
@@ -16,16 +17,16 @@ public sealed class PageObjectFactory
     /// Creates a <see cref="PageObject"/>, binds its annotated properties, and waits for required locators.
     /// </summary>
     public async Task<T> Create<T>(IPage page, ILocator? baseLocator = null) where T : PageObject
-        => (T)await Create(typeof(T), page, baseLocator, waitForRequiredLocators: true);
+        => (T)await CreateAndBindComponent(typeof(T), page, baseLocator, waitForRequiredLocators: true);
 
     /// <summary>
-    /// Constructs and binds a page object or control within the optional locator scope.
+    /// Constructs and binds a bindable component within the optional locator scope.
     /// </summary>
     /// <remarks>
     /// Optional nested components still receive locators, but can skip initial waits for their
     /// required locators.
     /// </remarks>
-    internal async Task<IBindableComponent> Create(
+    internal async Task<IBindableComponent> CreateAndBindComponent(
         Type objectType,
         IPage page,
         ILocator? baseLocator,

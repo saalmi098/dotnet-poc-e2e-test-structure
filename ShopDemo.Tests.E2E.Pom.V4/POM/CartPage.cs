@@ -17,6 +17,6 @@ public sealed class CartPage(IPage page, ILocator? baseLocator = null) : PageObj
     public async Task<CheckoutPage> ProceedToCheckout()
     {
         await Checkout.Click();
-        return await Create<CheckoutPage>();
+        return await CreatePageObject<CheckoutPage>();
     }
 }

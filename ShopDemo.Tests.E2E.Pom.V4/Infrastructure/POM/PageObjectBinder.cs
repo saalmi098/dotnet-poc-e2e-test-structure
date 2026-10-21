@@ -65,8 +65,8 @@ internal static class PageObjectBinder
             }
             else if (typeof(IBindableComponent).IsAssignableFrom(property.PropertyType))
             {
-                // create and bind child component property (Control or PageObject)
-                var child = await factory.Create(property.PropertyType, page, locator, wait);
+                // create and bind child component property
+                var child = await factory.CreateAndBindComponent(property.PropertyType, page, locator, wait);
                 property.SetValue(instance, child);
 
                 if (child is Control control)

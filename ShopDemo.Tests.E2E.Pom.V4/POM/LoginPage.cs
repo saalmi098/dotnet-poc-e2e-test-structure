@@ -28,6 +28,6 @@ public sealed class LoginPage(IPage page, ILocator? baseLocator = null) : PageOb
 
         var logoutLink = Page.GetByTestId("nav-logout-desktop");
         await logoutLink.WaitForAsync(new() { State = WaitForSelectorState.Visible });
-        return await Create<ShopNavigation>();
+        return await CreatePageObject<ShopNavigation>();
     }
 }

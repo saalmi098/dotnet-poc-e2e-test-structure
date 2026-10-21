@@ -55,6 +55,8 @@ Locators are required by default. `Required = false` still binds the locator or 
 
 `PageObjectFactory` reflectively constructs page objects and controls, while `PageObjectBinder` assigns their attributed properties. This centralizes selector resolution, scoping, validation, and required-element waits instead of repeating that setup in each page-object constructor.
 
+`ShopDemoPageTestV4` uses its per-test factory to create the initial page object. Each `PageObject` owns a `PageObjectFactory` for creating nested or destination page objects; these are separate factory instances. Tests should use returned objects for transitions instead of recreating page objects for the current route.
+
 Factory-created types must expose exactly one public constructor with the signature `(IPage page, ILocator? baseLocator = null)`. The binder processes attributed public properties only. They must be `ILocator` or `IBindableComponent` properties with a setter and carry at most one `LocatorAttribute`; invalid declarations cause binding errors. Unattributed properties are ignored.
 
 `PageObjectLocatorResolver` resolves each attribute using the supplied `baseLocator` as its scope, or the page when no base is given. Resolved Playwright locators stay lazy until an operation or wait uses them. During binding, required `ILocator` properties wait for their matched locator to become visible. For controls, the binder constructs the control first and waits on its resolved root instead.

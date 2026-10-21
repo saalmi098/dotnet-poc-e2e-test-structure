@@ -3,7 +3,7 @@ using Microsoft.Playwright;
 namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
 /// <summary>
-/// Provides the page and locator scope for a page object or control and tracks its required locators for readiness checks.
+/// Provides the page and locator scope for a bindable component and tracks its required locators for readiness checks.
 /// </summary>
 /// <param name="page">The Playwright page used for this object.</param>
 /// <param name="baseLocator">Optional parent locator that scopes the object's bindings; null scopes them to the whole page./// </param>
@@ -17,7 +17,7 @@ internal sealed class PageBindingContext(IPage page, ILocator? baseLocator = nul
     public ILocator? BaseLocator { get; } = baseLocator;
 
     /// <summary>
-    /// Playwright page used by the page object or control.
+    /// Playwright page used by the bindable component.
     /// </summary>
     public IPage Page { get; } = page;
 

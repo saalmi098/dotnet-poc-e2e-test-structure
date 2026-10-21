@@ -9,6 +9,7 @@ public abstract class PageObject(IPage page, ILocator? baseLocator = null) : IBi
 {
     private readonly PageBindingContext _bindingContext = new(page, baseLocator);
     private readonly List<IBindableComponent> _requiredChildren = [];
+    private readonly PageObjectFactory _pageFactory = new();
 
     /// <summary>
     /// The Playwright browser page used to interact with the application.
@@ -47,8 +48,8 @@ public abstract class PageObject(IPage page, ILocator? baseLocator = null) : IBi
     }
 
     /// <summary>
-    /// Creates and binds a child page object, optionally limiting its locators to a component scope.
+    /// Creates a child page object, optionally limiting its locators to a component scope.
     /// </summary>
-    protected Task<T> Create<T>(ILocator? scopedLocator = null) where T : PageObject
-        => new PageObjectFactory().Create<T>(Page, scopedLocator);
+    protected Task<T> CreatePageObject<T>(ILocator? scopedLocator = null) where T : PageObject
+        => _pageFactory.Create<T>(Page, scopedLocator);
 }

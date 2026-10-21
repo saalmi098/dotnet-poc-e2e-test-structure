@@ -35,6 +35,6 @@ public sealed class CatalogPage(IPage page, ILocator? baseLocator = null) : Page
     {
         var detailsButton = new Button(Page, GetProductCard(productId).GetByTestId($"product-details-{productId}"));
         await detailsButton.Click();
-        return await Create<ProductDetailsPage>();
+        return await CreatePageObject<ProductDetailsPage>();
     }
 }

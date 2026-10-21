@@ -1,5 +1,4 @@
 ﻿using Microsoft.Playwright;
-using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Pom.V4.POM;
 using ShopDemo.Tests.E2E.Shared;
 using System.Diagnostics;
@@ -16,18 +15,16 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
         var inventory = await navigation.Bar.OpenInventory();
         await inventory.UpdateStock(E2ETestSettings.CanvasToteId, 4);
 
-        navigation = await CreatePageObject<ShopNavigation>();
         navigation = await navigation.Bar.SignOut();
         var shopperLogin = await navigation.Bar.OpenLogin();
         navigation = await shopperLogin.SignIn(E2ETestSettings.Shopper);
 
         var catalog = await navigation.Bar.OpenCatalog();
         await catalog.AddProductToCart(E2ETestSettings.CanvasToteId);
-        var cart = await (await CreatePageObject<ShopNavigation>()).Bar.OpenCart();
+        var cart = await navigation.Bar.OpenCart();
         var checkout = await cart.ProceedToCheckout();
         var orderNumber = await checkout.PlaceOrder("Sample Shopper", E2ETestSettings.Shopper.Email);
 
-        navigation = await CreatePageObject<ShopNavigation>();
         navigation = await navigation.Bar.SignOut();
         var managerLogin = await navigation.Bar.OpenLogin();
         navigation = await managerLogin.SignIn(E2ETestSettings.StoreManager);
@@ -105,11 +102,10 @@ public sealed class PomJourneysTests(ITestOutputHelper output) : ShopDemoPageTes
         var catalog = await navigation.Bar.OpenCatalog();
         await catalog.AddProductToCart("field-notebook");
 
-        var cart = await (await CreatePageObject<ShopNavigation>()).Bar.OpenCart();
+        var cart = await navigation.Bar.OpenCart();
         var checkout = await cart.ProceedToCheckout();
         var orderNumber = await checkout.PlaceOrder("Sample Shopper", E2ETestSettings.Shopper.Email);
 
-        navigation = await CreatePageObject<ShopNavigation>();
         var orders = await navigation.Bar.OpenOrders();
         Assert.True(await orders.ContainsOrder(orderNumber));
     }

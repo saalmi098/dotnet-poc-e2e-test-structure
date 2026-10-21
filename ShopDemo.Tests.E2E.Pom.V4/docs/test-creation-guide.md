@@ -34,7 +34,7 @@ Use a stable `data-testid` as the default locator strategy. Use role or exact te
 
 1. Add a `[Fact]` to `PomJourneysTests` and use its existing `ShopDemoPageTest` setup.
 2. Navigate explicitly to the starting route with `Page.GotoAsync`, or start from a page object and activate a real UI transition.
-3. Create the initial page object with the test's `PageObjectFactory`; use `E2ETestSettings` and `DemoAccount` for known test data.
+3. Create the initial page object with the test base's `CreatePageObject<T>()`; use `E2ETestSettings` and `DemoAccount` for known test data.
 4. Perform actions through page-object methods or typed controls, then assert on the resulting UI with Playwright assertions or xUnit.
 
 For example, the existing catalog search journey follows the standard pattern:
@@ -91,7 +91,7 @@ Expose page-level operations as methods that describe the user action, and keep 
 
 When `baseLocator` is null, attributes resolve from the `IPage`; otherwise they resolve within that locator. Nested page objects should receive the locator for their parent section so their properties cannot accidentally match elements elsewhere on the page.
 
-Use the protected `Create<T>(scope)` method from a page object to construct and bind a nested page object. For a tab transition, the parent page object should select the tab first and then create the tab object scoped to its panel. Do not switch tabs through application-specific test hooks. Do not construct attributed page objects directly with `new`; use the factory or `Create<T>` so their properties are bound and required locators are waited for.
+Use the test base's `CreatePageObject<T>()` once to bootstrap a test's initial page object. After that, use page-object methods for navigation and continue with the returned page objects instead of creating another object for the current route. Inside a page object, use the protected `CreatePageObject<T>(scope)` method to construct and bind a nested page object. For a tab transition, the parent page object should select the tab first and then create the tab object scoped to its panel. Do not switch tabs through application-specific test hooks. Do not construct attributed page objects directly with `new`; use the factory or `CreatePageObject<T>` so their properties are bound and required locators are waited for.
 
 ## Exceptional cases
 
