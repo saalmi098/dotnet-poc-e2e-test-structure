@@ -11,7 +11,9 @@ POM V4 is an independent xUnit v3 project. It references `ShopDemo.Tests.E2E.Sha
 | Location | Add or update this when... |
 | --- | --- |
 | `*Tests.cs` | Adding page-focused end-to-end tests. Group tests by their initial page object and route; use separate classes when either differs. |
-| `PageObjectFactoryTests.cs` | Testing factory, binder, locator, scope, control-root, or readiness behavior. |
+| `PageObjectFactoryTests.cs` | Testing factory construction, failure isolation, concurrent calls, and scoped destination creation. |
+| `ComponentBinderTests.cs` | Testing recursive binding behavior, validation order, cycle detection, and component scope. |
+| `LocatorResolverTests.cs` | Testing locator metadata validation and selector resolution rules. |
 | `POM/` | Adding a page object or reusable application section used by a journey. |
 | `Infrastructure/POM/` | Changing the factory, binder, locator resolution, or page-object base. |
 | `Infrastructure/Locators/` | Changing locator attributes or supported selector strategies. |

@@ -7,7 +7,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 /// </summary>
 public abstract class PageObject(IPage page, ILocator? baseLocator = null) : IBindableComponent
 {
-    private readonly PageBindingContext _bindingContext = new(page, baseLocator);
+    private readonly ComponentBindingContext _bindingContext = new(page, baseLocator);
     private readonly List<IBindableComponent> _requiredChildren = [];
     private readonly PageObjectFactory _pageFactory = new();
 
@@ -26,11 +26,15 @@ public abstract class PageObject(IPage page, ILocator? baseLocator = null) : IBi
     public void AddRequiredLocator(ILocator locator) => _bindingContext.AddRequiredLocator(locator);
 
     /// <summary>
-    /// Reports whether this page object and its required child components are currently ready.
+    /// Reports whether this page object's scope, required locators, and required child components are currently ready.
     /// </summary>
     public async Task<bool> IsReady()
     {
-        // checks required locators to be visible
+        if (BaseLocator is not null && !await BaseLocator.IsVisibleAsync())
+        {
+            return false;
+        }
+
         if (!await _bindingContext.IsReady())
         {
             return false;

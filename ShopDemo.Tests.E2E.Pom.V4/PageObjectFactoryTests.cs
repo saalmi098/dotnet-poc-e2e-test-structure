@@ -9,140 +9,14 @@ namespace ShopDemo.Tests.E2E.Pom.V4;
 public sealed class PageObjectFactoryTests : ShopDemoPageTestV4
 {
     [Fact]
-    public async Task Binds_each_locator_strategy_scoped_to_its_parent()
+    public async Task Factory_rejects_a_null_page()
     {
-        await Page.SetContentAsync("""
-            <main data-testid="probe-parent">
-              <button>Save probe</button>
-              <button>Save probe extra</button>
-              <p>Text probe</p>
-              <p>Text probe extra</p>
-              <div class="css-probe">CSS probe</div>
-              <span data-probe="xpath">XPath probe</span>
-              <span data-testid="optional-probe" hidden>Optional probe</span>
-            </main>
-            """);
+        var factory = new PageObjectFactory();
 
-        var probe = await CreatePageObject<LocatorProbe>();
-
-        Assert.True(await probe.IsReady());
-        Assert.Equal("Save probe", await probe.Content.Button.InnerTextAsync());
-        Assert.Equal("Text probe", await probe.Content.Text.InnerTextAsync());
-        Assert.Equal("CSS probe", await probe.Content.Css.InnerTextAsync());
-        Assert.Equal("XPath probe", await probe.Content.XPath.InnerTextAsync());
-        Assert.Equal(1, await probe.Content.Optional.CountAsync());
-    }
-
-    [Fact]
-    public async Task Page_object_readiness_includes_required_child_components()
-    {
-        await Page.SetContentAsync("""
-            <main data-testid="probe-parent">
-              <button>Save probe</button>
-              <p>Text probe</p>
-              <div class="css-probe">CSS probe</div>
-              <span data-probe="xpath">XPath probe</span>
-              <span data-testid="optional-probe" hidden>Optional probe</span>
-            </main>
-            """);
-
-        var probe = await CreatePageObject<LocatorProbe>();
-
-        Assert.True(await probe.IsReady());
-        await probe.Content.Button.EvaluateAsync("element => element.style.visibility = 'hidden'");
-        Assert.False(await probe.IsReady());
-    }
-
-    [Fact]
-    public async Task Binds_control_properties_with_the_matched_locator_as_root()
-    {
-        await Page.SetContentAsync("""
-            <main data-testid="control-probe-parent">
-              <span data-testid="control-probe">Control probe</span>
-              <span data-testid="optional-control-probe" hidden>Optional control</span>
-            </main>
-            """);
-
-        var probe = await CreatePageObject<ControlProbePage>();
-
-        Assert.True(await probe.IsReady());
-        await probe.Required.Expect().ToHaveTextAsync("Control probe");
-        Assert.Equal("Control probe", await probe.Required.Locator.InnerTextAsync());
-    }
-
-    [Fact]
-    public async Task Optional_control_does_not_block_readiness()
-    {
-        await Page.SetContentAsync("""<main data-testid="control-probe-parent"><span data-testid="control-probe">x</span></main>""");
-
-        var probe = await CreatePageObject<ControlProbePage>();
-
-        Assert.True(await probe.IsReady());
-        Assert.Equal(0, await probe.Optional.Locator.CountAsync());
-    }
-
-    [Fact]
-    public async Task Control_waits_for_its_resolved_root_not_for_the_matched_element()
-    {
-        await Page.SetContentAsync("""
-            <div class="wrapper"><input type="hidden" data-testid="hidden-matched"><span>Visible root</span></div>
-            """);
-
-        var probe = await CreatePageObject<RootResolvingProbePage>();
-
-        Assert.True(await probe.IsReady());
-        await probe.Field.Expect().ToBeVisibleAsync();
-        await probe.Field.Expect().ToContainTextAsync("Visible root");
-    }
-
-    [Fact]
-    public async Task Properties_without_a_locator_attribute_are_not_bound()
-    {
-        await Page.SetContentAsync("<main></main>");
-
-        var probe = await CreatePageObject<UnattributedProbe>();
-
-        Assert.Null(probe.Unbound);
-        Assert.Null(probe.UnboundControl);
-    }
-
-    [Fact]
-    public async Task Missing_required_control_names_object_property_and_selector()
-    {
-        await Page.SetContentAsync("<main></main>");
-        Page.SetDefaultTimeout(250);
-
-        var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
-            () => CreatePageObject<ControlProbePage>());
-
-        Assert.Contains(nameof(ControlProbePage), exception.Message);
-        Assert.Contains(nameof(ControlProbePage.Required), exception.Message);
-        Assert.Contains("control-probe", exception.Message);
-    }
-
-    [Fact]
-    public async Task Required_binding_failure_names_object_property_and_selector()
-    {
-        await Page.SetContentAsync("<main></main>");
-        Page.SetDefaultTimeout(250);
-
-        var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
-            () => CreatePageObject<MissingRequiredProbe>());
-
-        Assert.Contains(nameof(MissingRequiredProbe), exception.Message);
-        Assert.Contains(nameof(MissingRequiredProbe.Missing), exception.Message);
-        Assert.Contains("missing-required-probe", exception.Message);
-    }
-
-    [Fact]
-    public async Task Locator_rejects_name_option_for_non_role_strategy()
-    {
-        await Page.SetContentAsync("<p>text probe</p>");
-
-        var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
-            () => CreatePageObject<InvalidLocatorOptionsProbe>());
-
-        Assert.Contains("Name option is only supported", exception.Message);
+#pragma warning disable CS8625
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => factory.Create<ScopedButtonProbe>(null));
+#pragma warning restore CS8625
     }
 
     [Fact]
@@ -155,61 +29,64 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTestV4
         Assert.Contains("(IPage page, ILocator? baseLocator = null)", exception.Message);
     }
 
-    private sealed class LocatorProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    [Fact]
+    public async Task Factory_preserves_constructor_failure_as_inner_exception()
     {
-        [Locator(LocatorKind.DataTestId, "probe-parent")]
-        public required LocatorProbeContent Content { get; init; }
+        var exception = await Assert.ThrowsAsync<PageObjectBindingException>(
+            () => CreatePageObject<ThrowingProbe>());
+
+        Assert.IsType<ArgumentException>(exception.InnerException);
     }
 
-    private sealed class LocatorProbeContent(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    [Fact]
+    public async Task Factory_can_be_reused_after_a_binding_failure()
     {
-        [Locator(LocatorKind.Role, "button", Name = "Save probe")]
-        public required ILocator Button { get; init; }
+        Page.SetDefaultTimeout(100);
+        var factory = new PageObjectFactory();
+        await Assert.ThrowsAsync<PageObjectBindingException>(
+            () => factory.Create<MissingRequiredProbe>(Page));
+        await Page.SetContentAsync("""<main data-testid="missing-required-probe">Ready</main>""");
 
-        [Locator(LocatorKind.Text, "Text probe")]
-        public required ILocator Text { get; init; }
+        var model = await factory.Create<MissingRequiredProbe>(Page);
 
-        [Locator(LocatorKind.Css, ".css-probe")]
-        public required ILocator Css { get; init; }
-
-        [Locator(LocatorKind.XPath, ".//span[@data-probe='xpath']")]
-        public required ILocator XPath { get; init; }
-
-        [Locator(LocatorKind.DataTestId, "optional-probe", Optional = true)]
-        public required ILocator Optional { get; init; }
+        await Expect(model.Missing).ToHaveTextAsync("Ready");
+        Assert.True(await model.IsReady());
     }
 
-    private sealed class ProbeControl(IPage page, ILocator? baseLocator = null) : Control(page, baseLocator);
-
-    private sealed class ControlProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    [Fact]
+    public async Task Factory_allows_concurrent_creations_without_false_cycle_detection()
     {
-        [Locator(LocatorKind.DataTestId, "control-probe")]
-        public required ProbeControl Required { get; init; }
+        await Page.SetContentAsync("""
+            <section data-testid="first"><button data-testid="save">First</button></section>
+            <section data-testid="second"><button data-testid="save">Second</button></section>
+            """);
+        var factory = new PageObjectFactory();
 
-        [Locator(LocatorKind.DataTestId, "optional-control-probe", Optional = true)]
-        public required ProbeControl Optional { get; init; }
+        var models = await Task.WhenAll(
+            factory.Create<ScopedButtonProbe>(Page, Page.GetByTestId("first")),
+            factory.Create<ScopedButtonProbe>(Page, Page.GetByTestId("second")));
+
+        Assert.NotSame(models[0], models[1]);
+        await models[0].Save.Expect().ToHaveTextAsync("First");
+        await models[1].Save.Expect().ToHaveTextAsync("Second");
+        Assert.True(await models[0].IsReady());
+        Assert.True(await models[1].IsReady());
     }
 
-    private sealed class RootResolvingControl(IPage page, ILocator? baseLocator = null) : Control(page, baseLocator)
+    [Fact]
+    public async Task Page_object_can_create_a_scoped_destination_after_transition()
     {
-        protected override ILocator ResolveControlRoot(ILocator matched) => matched.Locator("xpath=ancestor::div[@class='wrapper']");
-    }
+        await Page.SetContentAsync("""
+            <button data-testid="save">Outside</button>
+            <button data-testid="open" onclick="document.querySelector('[data-testid=section]').hidden = false">Open</button>
+            <section data-testid="section" hidden><button data-testid="save">Inside</button></section>
+            """);
+        var model = await new PageObjectFactory().Create<TransitionProbe>(Page);
 
-    private sealed class RootResolvingProbePage(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
-    {
-        [Locator(LocatorKind.DataTestId, "hidden-matched")]
-        public required RootResolvingControl Field { get; init; }
-    }
+        var section = await model.OpenSection();
 
-    private sealed class UnattributedProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
-    {
-#pragma warning disable S3459 // Unassigned members should be removed
-#pragma warning disable S1144 // Unused private types or members should be removed
-        public ILocator? Unbound { get; private set; }
-
-        public ProbeControl? UnboundControl { get; private set; }
-#pragma warning restore S1144 // Unused private types or members should be removed
-#pragma warning restore S3459 // Unassigned members should be removed
+        await section.Save.Expect().ToHaveTextAsync("Inside");
+        Assert.True(await section.IsReady());
     }
 
     private sealed class MissingRequiredProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
@@ -218,17 +95,42 @@ public sealed class PageObjectFactoryTests : ShopDemoPageTestV4
         public required ILocator Missing { get; init; }
     }
 
-    private sealed class InvalidLocatorOptionsProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
-    {
-        [Locator(LocatorKind.Text, "text probe", Name = "not a role")]
-        public required ILocator Invalid { get; init; }
-    }
-
 #pragma warning disable CS9113 // Parameter is unread.
     private sealed class UnsupportedConstructorProbe(IPage page, string selector) : PageObject(page)
 #pragma warning restore CS9113 // Parameter is unread.
     {
         [Locator(LocatorKind.DataTestId, "unsupported-constructor-probe")]
         public required ILocator Element { get; init; }
+    }
+
+    private sealed class ThrowingProbe : PageObject
+    {
+#pragma warning disable S1144 // Unused private types or members should be removed
+        public ThrowingProbe(IPage page, ILocator? baseLocator = null) : base(page, baseLocator)
+        {
+            throw new ArgumentException("Constructor failure.");
+        }
+#pragma warning restore S1144 // Unused private types or members should be removed
+    }
+
+    private sealed class ScopedButtonProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    {
+        [Locator(LocatorKind.DataTestId, "save")]
+        public required Button Save { get; init; }
+    }
+
+    private sealed class TransitionProbe(IPage page, ILocator? baseLocator = null) : PageObject(page, baseLocator)
+    {
+        [Locator(LocatorKind.DataTestId, "open")]
+        public required Button Open { get; init; }
+
+        [Locator(LocatorKind.DataTestId, "section", Optional = true)]
+        public required ILocator Section { get; init; }
+
+        public async Task<ScopedButtonProbe> OpenSection()
+        {
+            await Open.Click();
+            return await CreatePageObject<ScopedButtonProbe>(Section);
+        }
     }
 }

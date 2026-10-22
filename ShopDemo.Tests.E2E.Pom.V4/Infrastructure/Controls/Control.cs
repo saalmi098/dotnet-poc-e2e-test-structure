@@ -14,7 +14,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 /// </remarks>
 public abstract class Control(IPage page, ILocator? baseLocator = null) : IBindableComponent
 {
-    private readonly PageBindingContext _bindingContext = new(page, baseLocator);
+    private readonly ComponentBindingContext _bindingContext = new(page, baseLocator);
     private ILocator? _root;
 
     /// <summary>
@@ -30,9 +30,9 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
     public void AddRequiredLocator(ILocator locator) => _bindingContext.AddRequiredLocator(locator);
 
     /// <summary>
-    /// Reports whether this control's required locator is currently visible.
+    /// Reports whether this control's root and required locators are currently visible.
     /// </summary>
-    public Task<bool> IsReady() => _bindingContext.IsReady();
+    public async Task<bool> IsReady() => await Locator.IsVisibleAsync() && await _bindingContext.IsReady();
 
     /// <summary>
     /// The locator of this control's root element. Escape hatch for Playwright APIs that need an <see cref="ILocator"/>.

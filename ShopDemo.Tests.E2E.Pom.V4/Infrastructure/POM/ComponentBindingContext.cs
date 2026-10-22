@@ -7,7 +7,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 /// </summary>
 /// <param name="page">The Playwright page used for this object.</param>
 /// <param name="baseLocator">Optional parent locator that scopes the object's bindings; null scopes them to the whole page./// </param>
-internal sealed class PageBindingContext(IPage page, ILocator? baseLocator = null)
+internal sealed class ComponentBindingContext(IPage page, ILocator? baseLocator = null)
 {
     private readonly List<ILocator> _requiredLocators = [];
 
