@@ -8,7 +8,7 @@ namespace ShopDemo.Tests.E2E.Otel;
 /// span so that frontend interactions driven by the E2E tests show up as traces, same as a real user-monitoring
 /// (RUM) integration would record them in the browser.
 /// </summary>
-public static class UserInteractionTracer
+internal static class UserInteractionTracer
 {
     /// <summary>
     /// Semantic-ish attribute names used on interaction spans. Not an official OTel semantic convention;

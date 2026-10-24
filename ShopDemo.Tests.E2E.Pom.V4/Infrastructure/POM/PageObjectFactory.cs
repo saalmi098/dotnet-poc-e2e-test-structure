@@ -25,16 +25,10 @@ public sealed class PageObjectFactory
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        var testRoot = UserInteractionTelemetry.GetTestRootActivity(page);
-        return UserInteractionTracer.TraceAsync(
-            typeof(T).Name,
-            "Bind",
-            page.Url,
-            async () =>
-            {
-                var binder = new ComponentBinder(page);
-                return (T)await binder.CreateAndBind(typeof(T), baseLocator, waitForRequiredLocators: true);
-            },
-            testRoot);
+        return PageTracing.TraceInteractionAsync(page, typeof(T).Name, "Bind", async () =>
+        {
+            var binder = new ComponentBinder(page);
+            return (T)await binder.CreateAndBind(typeof(T), baseLocator, waitForRequiredLocators: true);
+        });
     }
 }

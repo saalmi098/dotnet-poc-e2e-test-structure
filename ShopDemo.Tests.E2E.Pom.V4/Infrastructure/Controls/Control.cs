@@ -84,8 +84,7 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
         IReadOnlyDictionary<string, object?>? attributes = null)
     {
         target ??= await TryGetLabel();
-        var testRoot = UserInteractionTelemetry.GetTestRootActivity(Page);
-        await UserInteractionTracer.TraceAsync(GetType().Name, interactionName, Page.Url, operation, testRoot, target, attributes);
+        await PageTracing.TraceInteractionAsync(Page, GetType().Name, interactionName, operation, target, attributes);
     }
 
     /// <summary>

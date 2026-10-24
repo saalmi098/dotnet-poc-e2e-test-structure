@@ -71,17 +71,6 @@ public abstract class ShopDemoPageTestV4 : PageTest
         testActivity.SetStatus(
             result == TestResult.Passed ? ActivityStatusCode.Ok : ActivityStatusCode.Error);
     }
-
-    /// <summary>
-    /// Runs a test-setup step (not a bound control interaction) inside a span nested under this test's root
-    /// span, the same way <c>Control.TraceInteraction</c> traces control interactions. Used for steps like
-    /// the initial page navigation, which happen directly in test setup rather than through a control.
-    /// </summary>
-    private protected Task TraceStep(string componentType, string interactionName, Func<Task> operation, string? target = null)
-    {
-        var testRoot = UserInteractionTelemetry.GetTestRootActivity(Page);
-        return UserInteractionTracer.TraceAsync(componentType, interactionName, Page.Url, operation, testRoot, target);
-    }
 }
 
 public abstract class ShopDemoPageTestV4<TPageObject> : ShopDemoPageTestV4
@@ -103,7 +92,13 @@ public abstract class ShopDemoPageTestV4<TPageObject> : ShopDemoPageTestV4
     public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
-        await TraceStep("Page", "Goto", async () => { await Page.GotoAsync(PageUrl); }, target: PageUrl);
+
+        await PageTracing.TraceInteractionAsync(Page, "Page", "Goto", async () =>
+        {
+            await Page.GotoAsync(PageUrl);
+        },
+        target: PageUrl);
+
         _model = await CreatePageObject<TPageObject>();
     }
 }
