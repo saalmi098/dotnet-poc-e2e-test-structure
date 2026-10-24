@@ -41,5 +41,5 @@ public sealed class DataGridPager(IPage page, ILocator? baseLocator = null) : Co
             await Locator.GetByRole(AriaRole.Button, new() { Name = buttonLabel }).ClickAsync();
             await Assertions.Expect(Caption).Not.ToHaveTextAsync(previousCaption);
         },
-        new Dictionary<string, object?> { ["ui.button.label"] = buttonLabel });
+        target: buttonLabel);
 }

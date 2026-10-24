@@ -20,7 +20,7 @@ public abstract class InputControl(IPage page, ILocator? baseLocator = null) : C
             Trace($"Filling input with '{value}'.");
             await Input.FillAsync(value);
         },
-        new Dictionary<string, object?> { ["ui.input.value"] = value });
+        target: value);
 
     public Task<string> GetValue() => Input.InputValueAsync();
 }

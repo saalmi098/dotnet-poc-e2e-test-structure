@@ -25,7 +25,7 @@ public sealed class Select(IPage page, ILocator? baseLocator = null) : Control(p
             await OpenPopover.GetByText(optionText, new() { Exact = true }).ClickAsync();
             await Assertions.Expect(OpenPopover).ToHaveCountAsync(0);
         },
-        new Dictionary<string, object?> { ["ui.option.text"] = optionText });
+        target: optionText);
 
     /// <summary>
     /// The text of the currently selected option as displayed by the control.

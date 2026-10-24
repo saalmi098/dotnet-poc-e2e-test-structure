@@ -2,9 +2,6 @@
 <!--
   Makes the OpenTelemetry PoC export to the local Jaeger container (see docker-compose.yml) when tests run
   through VS Test Explorer or `dotnet test`, which otherwise would not see a terminal-only env var.
-
-  To use in Visual Studio: Test > Configure Run Settings > Select Solution Wide runsettings File > pick this file.
-  To use on the command line: dotnet test --settings ShopDemo.Tests.E2E.Pom.V4\otel.runsettings
 -->
 <RunSettings>
   <RunConfiguration>

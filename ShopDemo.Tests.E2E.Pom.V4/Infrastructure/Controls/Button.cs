@@ -13,5 +13,6 @@ public sealed class Button(IPage page, ILocator? baseLocator = null) : Control(p
         await Locator.ClickAsync();
     });
 
-    public Task<string> GetText() => Locator.InnerTextAsync();
+    protected override async Task<string?> GetLabel()
+        => (await Locator.InnerTextAsync()).Trim();
 }

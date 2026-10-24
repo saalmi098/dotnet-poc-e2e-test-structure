@@ -22,4 +22,7 @@ public sealed class Tab(IPage page, ILocator? baseLocator = null) : Control(page
     });
 
     public async Task<bool> IsSelected() => await Locator.GetAttributeAsync("aria-selected") == "true";
+
+    protected override async Task<string?> GetLabel()
+        => (await Locator.InnerTextAsync()).Trim();
 }

@@ -71,13 +71,43 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
     /// </summary>
     /// <param name="interactionName">The interaction being performed, e.g. "Click", "SelectOption".</param>
     /// <param name="operation">The Playwright interaction to execute inside the span.</param>
+    /// <param name="target">
+    /// A human-readable identifier for what was interacted with (button label, tab text, option selected, ...),
+    /// folded into the span name/tags so e.g. two different buttons don't both just show up as "Button.Click".
+    /// Defaults to <see cref="GetLabel"/> when not given explicitly.
+    /// </param>
     /// <param name="attributes">Additional span attributes, e.g. the option text selected.</param>
-    protected Task TraceInteraction(
+    protected async Task TraceInteraction(
         string interactionName,
         Func<Task> operation,
+        string? target = null,
         IReadOnlyDictionary<string, object?>? attributes = null)
     {
+        target ??= await TryGetLabel();
         var testRoot = UserInteractionTelemetry.GetTestRootActivity(Page);
-        return UserInteractionTracer.TraceAsync(GetType().Name, interactionName, Page.Url, operation, testRoot, attributes);
+        await UserInteractionTracer.TraceAsync(GetType().Name, interactionName, Page.Url, operation, testRoot, target, attributes);
+    }
+
+    /// <summary>
+    /// This control's own human-readable name, e.g. a button's caption or a tab's text. Used by
+    /// <see cref="TraceInteraction"/> as the default span target when a call site doesn't pass one explicitly.
+    /// Override for controls whose own visible text identifies them. Default is none: not every control has
+    /// an obvious one (e.g. an input field's identifier is better expressed as the value passed to
+    /// <see cref="TraceInteraction"/>).
+    /// </summary>
+    protected virtual Task<string?> GetLabel() => Task.FromResult<string?>(null);
+
+    // Reading the label is a nice-to-have for the span name; a transient failure reading it must not
+    // break the interaction itself.
+    private async Task<string?> TryGetLabel()
+    {
+        try
+        {
+            return await GetLabel();
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
