@@ -43,6 +43,38 @@ To run a suite against an already-running app, set `SHOPDEMO_BASE_URL` (default 
 - **Screenplay:** For example `SignIn`, `AddProductToCart`, and `CompleteCheckout` are composed in multiple scenarios. The same `OrderIsVisible` question checks their outcomes.
 - **Baseline:** The same login, cart, and checkout interactions are repeated inline, showing what the abstractions remove.
 
+## UI interaction tracing (OpenTelemetry PoC)
+
+A separate **ShopDemo.Tests.E2E.Otel** project adds OpenTelemetry instrumentation to the **Pom.V4** suite only (the other suites are untouched). It traces real user interactions — clicks, fills, selections, tab switches — and page-object binding as spans, exported to the console and, optionally, to an OTLP collector such as Jaeger.
+
+### Try it out
+
+1. Start Jaeger (all-in-one, OTLP + UI) via `docker compose up -d` (see `docker-compose.yml`). UI at <http://localhost:16686>, OTLP gRPC receiver on `4317`.
+2. Run the app and the V4 suite as usual, pointing the exporter at Jaeger:
+
+   ```powershell
+   $env:OTEL_EXPORTER_OTLP_ENDPOINT = "http://localhost:4317"
+   dotnet test ShopDemo.Tests.E2E.Pom.V4
+   ```
+
+   In Visual Studio, select `ShopDemo.Tests.E2E.Pom.V4\otel.runsettings` under *Test > Configure Run Settings > Select Solution Wide runsettings File* instead — VS doesn't inherit a terminal-only environment variable, the runsettings file sets it for the test host directly, so right-click "Run Test"/Test Explorer work the same as the command line.
+3. Open <http://localhost:16686> and pick service `ShopDemo.E2E.Tests`.
+
+Without `OTEL_EXPORTER_OTLP_ENDPOINT` set, spans still print to the console — no Docker required to see the instrumentation working.
+
+### What gets traced
+
+- **One root span per test**, named after the test method and tagged `test.class` / `test.method` / `test.outcome`, so a trace backend can filter by either independently (e.g. Jaeger tag search `test.class=CatalogPageTests`).
+- **One span per control interaction**, e.g. `Button.Click: LOG IN`, `Tab.Select: INVENTORY`, `Select.SelectOption: 25`. The readable part after `:` comes from the control's own text/label or the value/option it was given — never the raw locator/selector, which is often dynamic and not meaningful to read.
+- **One span per page-object bind** (`CatalogPage.Bind`, `ProductDetailsInventoryTab.Bind`, ...) and the initial page navigation (`Page.Goto`). This is usually where the real time goes — MudBlazor render and data load — not inside the interactions themselves.
+- Pass/fail status and exceptions are recorded on the relevant span.
+
+All spans for one test nest under that test's root span as a single trace, rather than each interaction starting its own disconnected trace.
+
+### How it's wired in
+
+`PageTracing.TraceInteractionAsync(Page, componentType, interactionName, operation, target)` (in `ShopDemo.Tests.E2E.Otel`) is the single entry point. `Control.TraceInteraction`, `PageObjectFactory.Create<T>`, and `ShopDemoPageTestV4<T>.InitializeAsync` all call through it, so none of the V4 POM classes reference the OpenTelemetry SDK directly. A control gets a readable span name for free by overriding `Control.GetLabel()` (see `Button`, `Tab`); other controls pass an explicit `target` instead. The test's root span is looked up per interaction via a `ConditionalWeakTable<IPage, Activity>` (see `UserInteractionTelemetry`) rather than ambient `Activity.Current`, since xUnit v3's in-process runner does not reliably flow `ExecutionContext` from a test's `InitializeAsync` into the test method body.
+
 ## Demo login
 
 - **Shopper**
@@ -67,6 +99,7 @@ The role and credentials for both accounts are defined in `ShopDemo.Client/wwwro
 - **ShopDemo.Tests.E2E.Pom.V2** — independent attribute-bound page objects, reflective factory, locator binder, and tab scenarios.
 - **ShopDemo.Tests.E2E.Pom.V3** — independent compile-time page objects: static-abstract-interface-based generic creation, `Required<T>`/`Optional<T>` typed locators, no reflection.
 - **ShopDemo.Tests.E2E.Pom.V4** — V2 plus typed control wrappers (`Button`, `TextField`, `Select`, ...) that encapsulate MudBlazor interaction behaviour; attribute-bound properties use `required init` and locator optionality is expressed with `Optional = true`; see the [test-creation guide](ShopDemo.Tests.E2E.Pom.V4/docs/test-creation-guide.md); work in progress.
+- **ShopDemo.Tests.E2E.Otel** — OpenTelemetry PoC: traces V4 user interactions and page-object binds as spans, exported to the console and/or an OTLP collector; see [UI interaction tracing](#ui-interaction-tracing-opentelemetry-poc) above.
 - **ShopDemo.Tests.E2E.Screenplay** — actors, abilities, tasks, questions, and matching scenarios.
 
 The client loads the sample catalog from `ShopDemo.Client/wwwroot/data/products.json`; its product images use a local placeholder in `wwwroot/images`.
