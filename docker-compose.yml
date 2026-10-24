@@ -4,7 +4,18 @@ services:
     container_name: shopdemo-jaeger
     ports:
       - "16686:16686" # Jaeger UI
-      - "4317:4317"   # OTLP gRPC receiver
+      - "4317:4317"   # OTLP gRPC receiver (used directly by the .NET/test-side exporter)
       - "4318:4318"   # OTLP HTTP receiver
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.116.1
+    container_name: shopdemo-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4319:4319" # OTLP HTTP receiver, CORS-enabled for the browser-side instrumentation (otel-web/)
+    depends_on:
+      - jaeger

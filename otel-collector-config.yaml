@@ -1,0 +1,31 @@
+# Fronts Jaeger's OTLP receiver with CORS support, so the browser-side OpenTelemetry instrumentation
+# (otel-web/, loaded by ShopDemo.Client) can export spans directly via fetch() from the Blazor app's own
+# origin. Jaeger's all-in-one OTLP receiver does not send CORS headers itself, so a direct browser -> Jaeger
+# export would be blocked by the browser's CORS preflight; this collector is the standard fix (browser ->
+# CORS-enabled collector -> backend). The C#-side (ShopDemo.Tests.E2E.Otel) and dotnet test process export
+# straight to Jaeger's own OTLP port instead, since that's a server-to-server call not subject to CORS.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4319
+        cors:
+          allowed_origins:
+            - "http://127.0.0.1:5178"
+            - "http://localhost:5178"
+
+processors:
+  batch:
+
+exporters:
+  otlp:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]

@@ -1,0 +1,28 @@
+{
+  "name": "shopdemo-otel-web",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Builds the browser-side OpenTelemetry bundle that auto-instruments DOM clicks/submits/page-loads in ShopDemo.Client, independent of how the E2E tests that drive the browser are written (typed Page Object Model, raw Playwright calls, or anything else). See ../README.md 'UI interaction tracing'.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/context-zone": "2.12.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.223.0",
+    "@opentelemetry/instrumentation": "0.223.0",
+    "@opentelemetry/instrumentation-document-load": "0.69.0",
+    "@opentelemetry/instrumentation-user-interaction": "0.68.0",
+    "@opentelemetry/resources": "2.12.0",
+    "@opentelemetry/sdk-trace-base": "2.12.0",
+    "@opentelemetry/sdk-trace-web": "2.12.0",
+    "@opentelemetry/semantic-conventions": "^1.43.0"
+  },
+  "overrides": {
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/instrumentation": "0.223.0"
+  }
+}

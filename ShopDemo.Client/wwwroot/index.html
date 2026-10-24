@@ -21,6 +21,13 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">×</a>
     </div>
+    <!--
+        Auto-instruments real DOM clicks/submits/page loads via the OpenTelemetry Web SDK, independent of how
+        a test drives the browser (typed Page Object Model, raw Playwright locators, ...). Loaded before
+        Blazor so UserInteractionInstrumentation's event listeners are attached before the first click can
+        happen. See otel-web/README.md and the main README's "UI interaction tracing" section.
+    -->
+    <script src="js/otel-web-tracing.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
