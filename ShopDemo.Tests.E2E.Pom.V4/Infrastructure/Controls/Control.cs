@@ -1,5 +1,4 @@
 using Microsoft.Playwright;
-using ShopDemo.Tests.E2E.Otel;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Shared;
 
@@ -17,6 +16,7 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
 {
     private readonly ComponentBindingContext _bindingContext = new(page, baseLocator);
     private ILocator? _root;
+    private ControlTracing Tracing => field ??= new(page, GetType().Name, () => Locator, GetLabel);
 
     /// <summary>
     /// The Playwright browser page used to interact with the application.
@@ -65,27 +65,22 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
     protected void Trace(string message) => E2ETrace.Write(GetType(), message);
 
     /// <summary>
-    /// Runs a user interaction (click, selection, typing, ...) inside an OpenTelemetry span named
-    /// <c>"{ControlType}.{interactionName}"</c>, so the interaction is reported the same way a real
-    /// frontend RUM integration would report it.
+    /// Runs a user interaction (click, selection, typing, ...) inside an OpenTelemetry span, so the interaction
+    /// is reported the same way a real frontend RUM integration would report it. See <see cref="ControlTracing"/>.
     /// </summary>
     /// <param name="interactionName">The interaction being performed, e.g. "Click", "SelectOption".</param>
     /// <param name="operation">The Playwright interaction to execute inside the span.</param>
     /// <param name="target">
-    /// A human-readable identifier for what was interacted with (button label, tab text, option selected, ...),
-    /// folded into the span name/tags so e.g. two different buttons don't both just show up as "Button.Click".
+    /// A human-readable identifier for what was interacted with (button label, tab text, option selected, ...).
     /// Defaults to <see cref="GetLabel"/> when not given explicitly.
     /// </param>
     /// <param name="attributes">Additional span attributes, e.g. the option text selected.</param>
-    protected async Task TraceInteraction(
+    protected Task TraceInteraction(
         string interactionName,
         Func<Task> operation,
         string? target = null,
         IReadOnlyDictionary<string, object?>? attributes = null)
-    {
-        target ??= await TryGetLabel();
-        await PageTracing.TraceInteractionAsync(Page, GetType().Name, interactionName, operation, target, attributes);
-    }
+        => Tracing.TraceInteraction(interactionName, operation, target, attributes);
 
     /// <summary>
     /// This control's own human-readable name, e.g. a button's caption or a tab's text. Used by
@@ -95,18 +90,4 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
     /// <see cref="TraceInteraction"/>).
     /// </summary>
     protected virtual Task<string?> GetLabel() => Task.FromResult<string?>(null);
-
-    // Reading the label is a nice-to-have for the span name; a transient failure reading it must not
-    // break the interaction itself.
-    private async Task<string?> TryGetLabel()
-    {
-        try
-        {
-            return await GetLabel();
-        }
-        catch
-        {
-            return null;
-        }
-    }
 }

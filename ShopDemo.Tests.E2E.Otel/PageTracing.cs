@@ -11,14 +11,15 @@ namespace ShopDemo.Tests.E2E.Otel;
 /// </summary>
 public static class PageTracing
 {
-    /// <inheritdoc cref="UserInteractionTracer.TraceAsync(string,string,string?,Func{Task},System.Diagnostics.Activity?,string?,IReadOnlyDictionary{string,object?}?)"/>
+    /// <inheritdoc cref="UserInteractionTracer.TraceAsync(string,string,string?,Func{Task},System.Diagnostics.Activity?,string?,IReadOnlyDictionary{string,object?}?,string?)"/>
     public static Task TraceInteractionAsync(
         IPage page,
         string componentType,
         string interactionName,
         Func<Task> operation,
         string? target = null,
-        IReadOnlyDictionary<string, object?>? attributes = null)
+        IReadOnlyDictionary<string, object?>? attributes = null,
+        string? locatorDescription = null)
         => UserInteractionTracer.TraceAsync(
             componentType,
             interactionName,
@@ -26,7 +27,8 @@ public static class PageTracing
             operation,
             UserInteractionTelemetry.GetTestRootActivity(page),
             target,
-            attributes);
+            attributes,
+            locatorDescription);
 
     /// <inheritdoc cref="UserInteractionTracer.TraceAsync{TResult}"/>
     public static Task<TResult> TraceInteractionAsync<TResult>(
@@ -35,7 +37,8 @@ public static class PageTracing
         string interactionName,
         Func<Task<TResult>> operation,
         string? target = null,
-        IReadOnlyDictionary<string, object?>? attributes = null)
+        IReadOnlyDictionary<string, object?>? attributes = null,
+        string? locatorDescription = null)
         => UserInteractionTracer.TraceAsync(
             componentType,
             interactionName,
@@ -43,5 +46,6 @@ public static class PageTracing
             operation,
             UserInteractionTelemetry.GetTestRootActivity(page),
             target,
-            attributes);
+            attributes,
+            locatorDescription);
 }
