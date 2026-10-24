@@ -16,13 +16,16 @@ public sealed class Select(IPage page, ILocator? baseLocator = null) : Control(p
     /// <summary>
     /// Opens the select, picks the option with exactly the given text and waits until the popover has closed again.
     /// </summary>
-    public async Task SelectOption(string optionText)
-    {
-        Trace($"Selecting option '{optionText}'.");
-        await Locator.Locator(".mud-input").ClickAsync();
-        await OpenPopover.GetByText(optionText, new() { Exact = true }).ClickAsync();
-        await Assertions.Expect(OpenPopover).ToHaveCountAsync(0);
-    }
+    public Task SelectOption(string optionText) => TraceInteraction(
+        "SelectOption",
+        async () =>
+        {
+            Trace($"Selecting option '{optionText}'.");
+            await Locator.Locator(".mud-input").ClickAsync();
+            await OpenPopover.GetByText(optionText, new() { Exact = true }).ClickAsync();
+            await Assertions.Expect(OpenPopover).ToHaveCountAsync(0);
+        },
+        new Dictionary<string, object?> { ["ui.option.text"] = optionText });
 
     /// <summary>
     /// The text of the currently selected option as displayed by the control.

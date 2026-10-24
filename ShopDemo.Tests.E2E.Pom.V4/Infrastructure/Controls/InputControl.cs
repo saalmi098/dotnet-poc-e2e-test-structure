@@ -13,11 +13,14 @@ public abstract class InputControl(IPage page, ILocator? baseLocator = null) : C
     // input). descendant-or-self finds the input in both cases.
     protected ILocator Input => Locator.Locator("xpath=descendant-or-self::input");
 
-    protected async Task FillText(string value)
-    {
-        Trace($"Filling input with '{value}'.");
-        await Input.FillAsync(value);
-    }
+    protected Task FillText(string value) => TraceInteraction(
+        "Fill",
+        async () =>
+        {
+            Trace($"Filling input with '{value}'.");
+            await Input.FillAsync(value);
+        },
+        new Dictionary<string, object?> { ["ui.input.value"] = value });
 
     public Task<string> GetValue() => Input.InputValueAsync();
 }

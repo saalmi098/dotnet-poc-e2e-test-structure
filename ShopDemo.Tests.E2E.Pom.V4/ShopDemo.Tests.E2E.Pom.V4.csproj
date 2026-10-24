@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ShopDemo.Tests.E2E.Shared\ShopDemo.Tests.E2E.Shared.csproj" />
+    <ProjectReference Include="..\ShopDemo.Tests.E2E.Otel\ShopDemo.Tests.E2E.Otel.csproj" />
   </ItemGroup>
 </Project>

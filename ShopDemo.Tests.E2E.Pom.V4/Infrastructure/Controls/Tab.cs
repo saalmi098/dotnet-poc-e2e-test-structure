@@ -14,12 +14,12 @@ public sealed class Tab(IPage page, ILocator? baseLocator = null) : Control(page
     /// <summary>
     /// Activates the tab and waits until MudBlazor marks it as selected.
     /// </summary>
-    public async Task Select()
+    public Task Select() => TraceInteraction("Select", async () =>
     {
         Trace("Selecting tab.");
         await Locator.ClickAsync();
         await Expect().ToHaveAttributeAsync("aria-selected", "true");
-    }
+    });
 
     public async Task<bool> IsSelected() => await Locator.GetAttributeAsync("aria-selected") == "true";
 }

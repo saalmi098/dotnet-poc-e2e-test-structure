@@ -32,11 +32,14 @@ public sealed class DataGridPager(IPage page, ILocator? baseLocator = null) : Co
     /// <summary>
     /// Clicks a navigation button and waits until the range caption has changed, i.e. the new page is displayed.
     /// </summary>
-    private async Task GoTo(string buttonLabel)
-    {
-        var previousCaption = (await Caption.InnerTextAsync()).Trim();
-        Trace($"Clicking '{buttonLabel}' on page '{previousCaption}'.");
-        await Locator.GetByRole(AriaRole.Button, new() { Name = buttonLabel }).ClickAsync();
-        await Assertions.Expect(Caption).Not.ToHaveTextAsync(previousCaption);
-    }
+    private Task GoTo(string buttonLabel) => TraceInteraction(
+        "Click",
+        async () =>
+        {
+            var previousCaption = (await Caption.InnerTextAsync()).Trim();
+            Trace($"Clicking '{buttonLabel}' on page '{previousCaption}'.");
+            await Locator.GetByRole(AriaRole.Button, new() { Name = buttonLabel }).ClickAsync();
+            await Assertions.Expect(Caption).Not.ToHaveTextAsync(previousCaption);
+        },
+        new Dictionary<string, object?> { ["ui.button.label"] = buttonLabel });
 }

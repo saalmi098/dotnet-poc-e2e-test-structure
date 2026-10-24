@@ -1,7 +1,10 @@
 using Microsoft.Playwright;
 using Microsoft.Playwright.Xunit.v3;
+using ShopDemo.Tests.E2E.Otel;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Shared;
+using System.Diagnostics;
+using Xunit;
 
 namespace ShopDemo.Tests.E2E.Pom.V4;
 
@@ -9,6 +12,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4;
 public abstract class ShopDemoPageTestV4 : PageTest
 {
     private readonly PageObjectFactory _factory = new();
+    private Activity? _testActivity;
 
     /// <summary>
     /// Creates and binds a page object for the current <see cref="PageTest.Page"/>.
@@ -21,6 +25,28 @@ public abstract class ShopDemoPageTestV4 : PageTest
         BaseURL = E2ETestSettings.BaseUrl,
         ViewportSize = new ViewportSize { Width = 1365, Height = 900 }
     };
+
+    /// <summary>
+    /// Opens one root span per test, named after the test itself, so every <c>Control.TraceInteraction</c>
+    /// span performed during the test (clicks, fills, selections, ...) nests under it as a child span instead
+    /// of each becoming its own disconnected trace. Mirrors how a real frontend RUM integration groups
+    /// interactions under one page-view/session trace.
+    /// </summary>
+    public override async ValueTask InitializeAsync()
+    {
+        await base.InitializeAsync();
+
+        var testName = TestContext.Current?.Test?.TestDisplayName ?? GetType().Name;
+        _testActivity = UserInteractionTelemetry.ActivitySource.StartActivity(testName, ActivityKind.Internal);
+        UserInteractionTelemetry.SetTestRootActivity(Page, _testActivity);
+    }
+
+    public override async ValueTask DisposeAsync()
+    {
+        UserInteractionTelemetry.SetTestRootActivity(Page, null);
+        _testActivity?.Dispose();
+        await base.DisposeAsync();
+    }
 }
 
 public abstract class ShopDemoPageTestV4<TPageObject> : ShopDemoPageTestV4

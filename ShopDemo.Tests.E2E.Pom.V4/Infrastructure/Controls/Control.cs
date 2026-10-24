@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using ShopDemo.Tests.E2E.Otel;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 using ShopDemo.Tests.E2E.Shared;
 
@@ -62,4 +63,21 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
     /// Writes a trace line for an interaction with this control.
     /// </summary>
     protected void Trace(string message) => E2ETrace.Write(GetType(), message);
+
+    /// <summary>
+    /// Runs a user interaction (click, selection, typing, ...) inside an OpenTelemetry span named
+    /// <c>"{ControlType}.{interactionName}"</c>, so the interaction is reported the same way a real
+    /// frontend RUM integration would report it.
+    /// </summary>
+    /// <param name="interactionName">The interaction being performed, e.g. "Click", "SelectOption".</param>
+    /// <param name="operation">The Playwright interaction to execute inside the span.</param>
+    /// <param name="attributes">Additional span attributes, e.g. the option text selected.</param>
+    protected Task TraceInteraction(
+        string interactionName,
+        Func<Task> operation,
+        IReadOnlyDictionary<string, object?>? attributes = null)
+    {
+        var testRoot = UserInteractionTelemetry.GetTestRootActivity(Page);
+        return UserInteractionTracer.TraceAsync(GetType().Name, interactionName, Page.Url, operation, testRoot, attributes);
+    }
 }

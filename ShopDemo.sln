@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Pom.V3",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Pom.V4", "ShopDemo.Tests.E2E.Pom.V4\ShopDemo.Tests.E2E.Pom.V4.csproj", "{EA541795-95DF-416C-9E9F-3B42518D269A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShopDemo.Tests.E2E.Otel", "ShopDemo.Tests.E2E.Otel\ShopDemo.Tests.E2E.Otel.csproj", "{76CE785C-3BF2-41FE-AFF3-5845826AC140}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +183,18 @@ Global
 		{EA541795-95DF-416C-9E9F-3B42518D269A}.Release|x64.Build.0 = Release|Any CPU
 		{EA541795-95DF-416C-9E9F-3B42518D269A}.Release|x86.ActiveCfg = Release|Any CPU
 		{EA541795-95DF-416C-9E9F-3B42518D269A}.Release|x86.Build.0 = Release|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Debug|x64.Build.0 = Debug|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Debug|x86.Build.0 = Debug|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Release|Any CPU.Build.0 = Release|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Release|x64.ActiveCfg = Release|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Release|x64.Build.0 = Release|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Release|x86.ActiveCfg = Release|Any CPU
+		{76CE785C-3BF2-41FE-AFF3-5845826AC140}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
