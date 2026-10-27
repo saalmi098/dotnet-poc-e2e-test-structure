@@ -8,13 +8,16 @@ namespace ShopDemo.Tests.E2E.Pom.V4;
 // TODO: remove V4 from the name of the class (use default ShopDemoPageTest and integrate the changes from here)
 public abstract class ShopDemoPageTestV4 : PageTest
 {
-    private readonly PageObjectFactory _factory = new();
+    /// <summary>
+    /// Gets the per-test factory used to create and bind page objects.
+    /// </summary>
+    protected virtual PageObjectFactory PageObjectFactory => new();
 
     /// <summary>
     /// Creates and binds a page object for the current <see cref="PageTest.Page"/>.
     /// </summary>
     protected Task<T> CreatePageObject<T>(ILocator? baseLocator = null) where T : PageObject
-        => _factory.Create<T>(Page, baseLocator);
+        => PageObjectFactory.Create<T>(Page, baseLocator);
 
     public override BrowserNewContextOptions ContextOptions() => new()
     {
@@ -26,13 +29,15 @@ public abstract class ShopDemoPageTestV4 : PageTest
 public abstract class ShopDemoPageTestV4<TPageObject> : ShopDemoPageTestV4
     where TPageObject : PageObject
 {
-    private TPageObject? _model;
-
     /// <summary>
     /// Gets the initial page object after test initialization has navigated and bound it.
     /// </summary>
-    protected TPageObject Model => _model
-        ?? throw new InvalidOperationException("The initial page object is not available before test initialization completes.");
+    protected TPageObject Model
+    {
+        get => field
+            ?? throw new InvalidOperationException("The initial page object is not available before test initialization completes.");
+        private set;
+    }
 
     /// <summary>
     /// Gets the application-relative route to open before binding <see cref="Model"/>.
@@ -42,7 +47,7 @@ public abstract class ShopDemoPageTestV4<TPageObject> : ShopDemoPageTestV4
     public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
-        await Page.GotoAsync(PageUrl);
-        _model = await CreatePageObject<TPageObject>();
+        await Page.GotoAsync(PageUrl); // TODO: in Basement this is not needed, is it? Does this make sense (thinking of sub-page objects that are not the root page object)?
+        Model = await CreatePageObject<TPageObject>();
     }
 }

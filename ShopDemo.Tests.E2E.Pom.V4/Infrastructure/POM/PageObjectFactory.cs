@@ -18,7 +18,7 @@ public sealed class PageObjectFactory
     {
         ArgumentNullException.ThrowIfNull(page);
 
-        var binder = new ComponentBinder(page);
-        return (T)await binder.CreateAndBind(typeof(T), baseLocator, waitForRequiredLocators: true);
+        var treeBuilder = new ComponentTreeBuilder(page);
+        return (T)await treeBuilder.Build(typeof(T), baseLocator, waitForRequiredLocators: true);
     }
 }

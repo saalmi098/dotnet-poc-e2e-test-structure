@@ -10,7 +10,7 @@ namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
 internal static class LocatorResolver
 {
     /// <summary>
-    /// Defines the property types that can be auto-bound by <see cref="POM.ComponentBinder"/>.
+    /// Defines the property types that can be auto-bound by <see cref="ComponentTreeBuilder"/>.
     /// </summary>
     private static IReadOnlyList<Type> SupportedAutoBoundPropertyTypes { get; } =
     [

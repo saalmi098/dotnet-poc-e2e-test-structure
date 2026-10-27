@@ -6,10 +6,10 @@ using Xunit;
 
 namespace ShopDemo.Tests.E2E.Pom.V4;
 
-public sealed class ComponentBinderTests : ShopDemoPageTestV4
+public sealed class ComponentTreeBuilderTests : ShopDemoPageTestV4
 {
     [Fact]
-    public async Task CreateAndBind_detects_recursive_component_metadata()
+    public async Task Build_detects_recursive_component_metadata()
     {
         await Page.SetContentAsync("""<main data-testid="recursive-component"><span>Visible component</span></main>""");
 
@@ -21,7 +21,7 @@ public sealed class ComponentBinderTests : ShopDemoPageTestV4
     }
 
     [Fact]
-    public async Task CreateAndBind_detects_indirect_component_cycles()
+    public async Task Build_detects_indirect_component_cycles()
     {
         await Page.SetContentAsync("<main></main>");
 
@@ -33,7 +33,7 @@ public sealed class ComponentBinderTests : ShopDemoPageTestV4
     }
 
     [Fact]
-    public async Task CreateAndBind_allows_same_component_type_in_separate_sibling_scopes()
+    public async Task Build_allows_same_component_type_in_separate_sibling_scopes()
     {
         await Page.SetContentAsync("""
             <main>
@@ -178,7 +178,7 @@ public sealed class ComponentBinderTests : ShopDemoPageTestV4
     }
 
     [Fact]
-    public async Task CreateAndBind_rejects_indexer_properties_before_waiting_for_a_locator()
+    public async Task Build_rejects_indexer_properties_before_waiting_for_a_locator()
     {
         await Page.SetContentAsync("<main></main>");
         Page.SetDefaultTimeout(250);

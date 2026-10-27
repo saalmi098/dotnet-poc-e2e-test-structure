@@ -1,20 +1,18 @@
 using Microsoft.Playwright;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Controls;
 using ShopDemo.Tests.E2E.Pom.V4.Infrastructure.Locators;
-using ShopDemo.Tests.E2E.Shared;
-using System.Diagnostics;
 using System.Reflection;
 
 namespace ShopDemo.Tests.E2E.Pom.V4.Infrastructure.POM;
 
 /// <summary>
-/// Owns one recursive binding operation: creates components, binds attributed properties, and waits for required UI elements.
+/// Builds a component tree by creating components, binding attributed properties, and waiting for required UI elements.
 /// </summary>
 /// <remarks>
-/// One binder is created per root page object. Its active component path is shared across that binding traversal,
+/// One instance is created per root page object. Its active recursion path is shared across that traversal,
 /// while locator scope and wait behavior are passed per child.
 /// </remarks>
-internal sealed class ComponentBinder(IPage page)
+internal sealed class ComponentTreeBuilder(IPage page)
 {
     private readonly HashSet<Type> _activeComponentTypes = [];
     private readonly IPage _page = page;
@@ -22,7 +20,7 @@ internal sealed class ComponentBinder(IPage page)
     /// <summary>
     /// Creates a component, binds its attributed properties recursively, and registers its readiness requirements.
     /// </summary>
-    public async Task<IBindableComponent> CreateAndBind(
+    public async Task<IBindableComponent> Build(
         Type componentType,
         ILocator? baseLocator,
         bool waitForRequiredLocators)
@@ -52,6 +50,13 @@ internal sealed class ComponentBinder(IPage page)
         {
             throw new PageObjectBindingException(
                 $"Property '{componentType.Name}.{property.Name}' must have a setter and must not be an indexer.");
+        }
+
+        if (!typeof(ILocator).IsAssignableFrom(property.PropertyType)
+            && !typeof(IBindableComponent).IsAssignableFrom(property.PropertyType))
+        {
+            throw new PageObjectBindingException(
+                $"Property '{componentType.Name}.{property.Name}' must implement '{nameof(IBindableComponent)}' or be assignable to '{nameof(ILocator)}'.");
         }
 
         if (!attribute.Optional
@@ -86,7 +91,7 @@ internal sealed class ComponentBinder(IPage page)
         ILocator locator,
         bool wait)
     {
-        var child = await CreateAndBind(property.PropertyType, locator, wait);
+        var child = await Build(property.PropertyType, locator, wait);
         property.SetValue(instance, child);
 
         if (child is Control control)
