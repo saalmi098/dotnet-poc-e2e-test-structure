@@ -1,0 +1,20 @@
+<RunSettings>
+  <RunConfiguration>
+	<EnvironmentVariables>
+	  <SHOPDEMO_BASE_URL>https://localhost:53246</SHOPDEMO_BASE_URL>
+	  <HEADED>0</HEADED>
+	</EnvironmentVariables>
+  </RunConfiguration>
+	<Playwright>
+	  <LaunchOptions>
+		<!-- Adds a delay (in milliseconds) between Playwright actions - useful for debugging and slowing down test execution -->
+		<!-- Note: this currently only works when running "dotnet test" in the CLI - not when running tests in Visual Studio Test Explorer -->
+		<SlowMo>1000</SlowMo>
+	  </LaunchOptions>
+	</Playwright>
+</RunSettings>
+
+<!--
+CLI command (remove whitespace betweens double-dashes in settings and filter arguments): 
+dotnet test - -settings headed.runsettings - -filter "FullyQualifiedName=ShopDemo.Tests.E2E.Pom.V4.ProductDetailsTests.Product_inventory_grid_can_be_read_and_paged_through_grid_controls"
+-->
