@@ -44,7 +44,7 @@ public abstract class Control(IPage page, ILocator? baseLocator = null) : IBinda
     /// <summary>
     /// Starts a Playwright assertion on this control's root element.
     /// </summary>
-    public ILocatorAssertions Expect() => Assertions.Expect(Locator); // TODO: not necessarily needed. Instead of writing e.g. `await control.Expect().ToBeVisibleAsync()`, we could just write `await Expect(control.Locator).ToBeVisibleAsync()`.
+    public ILocatorAssertions Expect() => Assertions.Expect(Locator);
 
     /// <summary>
     /// Resolves the element matched by the locator attribute to this control's interaction root.
