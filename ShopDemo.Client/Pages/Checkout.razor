@@ -1,70 +1,116 @@
 @page "/checkout"
-@inject IDemoAuthService Auth
-@inject ICartService Cart
-@inject ICheckoutService CheckoutService
-@inject NavigationManager Navigation
+@inherits ShopPageBase
 
 <PageTitle>Checkout - ShopDemo</PageTitle>
 <div data-testid="checkout-page">
 <MudText Typo="Typo.h4" GutterBottom="true">Checkout</MudText>
 @if (Auth.CurrentUser is null)
 {
-    <MudAlert Severity="Severity.Info">Redirecting to demo login...</MudAlert>
+    <MudAlert Severity="Severity.Info">Redirecting to login...</MudAlert>
 }
 else if (_order is not null)
 {
     <MudAlert data-testid="checkout-success" Severity="Severity.Success" Icon="@Icons.Material.Filled.CheckCircle">
         <MudText Typo="Typo.h5">Order confirmed</MudText>
-            <MudText>Thank you, @_order.CustomerName. Your demo order number is <strong data-testid="checkout-order-number">@_order.Number</strong>.</MudText>
-        <MudText>Total: @_order.Total.ToString("C")</MudText>
-        <MudText>This is a simulated order; no payment was taken.</MudText>
+        <MudText>Thank you, @_order.CustomerName. Your order number is <strong data-testid="checkout-order-number">@_order.Number</strong>.</MudText>
+        <MudText>Total: <span data-testid="checkout-order-total">@_order.Total.ToMoney()</span> (@(_order.PaymentMethod == PaymentMethod.Invoice ? "pay by invoice" : _order.PaymentReference))</MudText>
+        <MudText>Shipping to @_order.AddressLine, @_order.PostalCode @_order.City, @_order.Country.</MudText>
+        <MudText>This is a simulated order; no real payment was taken.</MudText>
     </MudAlert>
-    <MudButton Href="/orders" Color="Color.Primary" Variant="Variant.Filled" Class="mt-4">View order history</MudButton>
+    <MudStack Row="true" Class="mt-4">
+        <MudButton data-testid="checkout-view-order" Href="@($"/orders/{_order.Number}")" Color="Color.Primary" Variant="Variant.Filled">View order</MudButton>
+        <MudButton data-testid="checkout-view-orders" Href="/orders" Variant="Variant.Outlined">View order history</MudButton>
+        <MudButton Href="/" Variant="Variant.Text">Continue shopping</MudButton>
+    </MudStack>
 }
-else if (Cart.Items.Count == 0)
+else if (_loading)
 {
-    <MudAlert Severity="Severity.Info">Your cart is empty. <MudLink Href="/">Browse the catalog</MudLink> first.</MudAlert>
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading checkout...</MudText></div>
+}
+else if (_cart.Items.Count == 0)
+{
+    <MudAlert data-testid="checkout-empty" Severity="Severity.Info">Your cart is empty. <MudLink Href="/">Browse the catalog</MudLink> first.</MudAlert>
 }
 else
 {
     <MudGrid Spacing="4">
         <MudItem xs="12" md="7">
             <MudPaper data-testid="checkout-form" Class="pa-5">
-                <MudText Typo="Typo.h6" GutterBottom="true">Your details</MudText>
-                <EditForm Model="@_model" OnValidSubmit="@SubmitOrder">
+                <EditForm Model="@_model" OnValidSubmit="@SubmitOrderAsync">
                     <DataAnnotationsValidator />
                     <MudStack Spacing="3">
+                        <MudText Typo="Typo.h6">Contact</MudText>
                         <MudTextField T="string" data-testid="checkout-name" Label="Customer name" @bind-Value="_model.CustomerName" For="@(() => _model.CustomerName)" Variant="Variant.Outlined" />
                         <MudTextField T="string" data-testid="checkout-email" Label="Email" @bind-Value="_model.Email" For="@(() => _model.Email)" Variant="Variant.Outlined" />
+
+                        <MudText Typo="Typo.h6">Shipping address</MudText>
+                        <MudTextField T="string" data-testid="checkout-address" Label="Street and number" @bind-Value="_model.AddressLine" For="@(() => _model.AddressLine)" Variant="Variant.Outlined" />
+                        <MudGrid>
+                            <MudItem xs="4"><MudTextField T="string" data-testid="checkout-postal-code" Label="Postal code" @bind-Value="_model.PostalCode" For="@(() => _model.PostalCode)" Variant="Variant.Outlined" /></MudItem>
+                            <MudItem xs="8"><MudTextField T="string" data-testid="checkout-city" Label="City" @bind-Value="_model.City" For="@(() => _model.City)" Variant="Variant.Outlined" /></MudItem>
+                        </MudGrid>
+                        <MudTextField T="string" data-testid="checkout-country" Label="Country" @bind-Value="_model.Country" For="@(() => _model.Country)" Variant="Variant.Outlined" />
+                        <MudCheckBox T="bool" data-testid="checkout-save-address" @bind-Value="_model.SaveAddress" Label="Save this address to my account" />
+
+                        <MudText Typo="Typo.h6">Shipping method</MudText>
+                        <MudRadioGroup T="ShippingMethod" Value="@_model.ShippingMethod" ValueChanged="@OnShippingChangedAsync" data-testid="checkout-shipping">
+                            <MudRadio T="ShippingMethod" Value="ShippingMethod.Standard" data-testid="checkout-shipping-standard">Standard (3-5 days) – @Pricing.StandardShippingCost.ToMoney() (free from @Pricing.FreeStandardShippingThreshold.ToMoney())</MudRadio>
+                            <MudRadio T="ShippingMethod" Value="ShippingMethod.Express" data-testid="checkout-shipping-express">Express (1-2 days) – @Pricing.ExpressShippingCost.ToMoney()</MudRadio>
+                        </MudRadioGroup>
+
+                        <MudText Typo="Typo.h6">Payment</MudText>
+                        <MudRadioGroup T="PaymentMethod" @bind-Value="_model.PaymentMethod" data-testid="checkout-payment">
+                            <MudRadio T="PaymentMethod" Value="PaymentMethod.Invoice" data-testid="checkout-payment-invoice">Pay by invoice</MudRadio>
+                            <MudRadio T="PaymentMethod" Value="PaymentMethod.CreditCard" data-testid="checkout-payment-card">Credit card (simulated)</MudRadio>
+                        </MudRadioGroup>
+                        @if (_model.PaymentMethod == PaymentMethod.CreditCard)
+                        {
+                            <div data-testid="checkout-card-fields">
+                            <MudStack Spacing="2">
+                                <MudAlert Severity="Severity.Info" Dense="true">Demo only: use 4242 4242 4242 4242 (accepted) or 4000 0000 0000 0002 (declined), any future expiry and any 3-digit code.</MudAlert>
+                                <MudTextField T="string" data-testid="checkout-card-holder" Label="Name on card" @bind-Value="_model.CardHolder" Variant="Variant.Outlined" />
+                                <MudTextField T="string" data-testid="checkout-card-number" Label="Card number" @bind-Value="_model.CardNumber" Variant="Variant.Outlined" />
+                                <MudGrid>
+                                    <MudItem xs="6"><MudTextField T="string" data-testid="checkout-card-expiry" Label="Expiry (MM/YY)" @bind-Value="_model.CardExpiry" Variant="Variant.Outlined" /></MudItem>
+                                    <MudItem xs="6"><MudTextField T="string" data-testid="checkout-card-cvc" Label="Security code" @bind-Value="_model.CardCvc" Variant="Variant.Outlined" /></MudItem>
+                                </MudGrid>
+                            </MudStack>
+                            </div>
+                        }
                         <ValidationSummary />
                         @if (_error is not null)
                         {
-                            <MudAlert Severity="Severity.Error">@_error</MudAlert>
+                            <MudAlert data-testid="checkout-error" Severity="Severity.Error">@_error</MudAlert>
                         }
-                        <MudButton data-testid="checkout-confirm" ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Confirm simulated order</MudButton>
+                        <MudButton data-testid="checkout-confirm" ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled" Disabled="@_submitting">
+                            @(_submitting ? "Placing order..." : "Place order")
+                        </MudButton>
                     </MudStack>
                 </EditForm>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" md="5">
-            <MudPaper Class="pa-5">
+            <MudPaper Class="pa-5" data-testid="checkout-summary">
                 <MudText Typo="Typo.h6">Order summary</MudText>
-                @foreach (var line in Cart.Items)
+                @foreach (var line in _cart.Items)
                 {
-                    <MudStack Row="true" Justify="Justify.SpaceBetween" Class="py-2">
-                        <MudText>@line.Quantity × @line.Product.Name</MudText>
-                        <MudText>@line.LineTotal.ToString("C")</MudText>
-                    </MudStack>
+                    <div class="summary-row" data-testid="@($"checkout-line-{line.ProductId}")">
+                        <span>@line.Quantity × @line.ProductName</span>
+                        <span>@line.LineTotal.ToMoney()</span>
+                    </div>
                 }
                 <MudDivider Class="my-2" />
-                <MudStack Row="true" Justify="Justify.SpaceBetween">
-                    <MudText Typo="Typo.subtitle1">Subtotal</MudText>
-                    <MudText Typo="Typo.subtitle1">@Cart.Subtotal.ToString("C")</MudText>
-                </MudStack>
-                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">No payment provider is connected.</MudText>
+                <div class="summary-row"><span>Subtotal</span><span data-testid="checkout-subtotal">@_cart.Subtotal.ToMoney()</span></div>
+                @if (_cart.CouponCode is not null)
+                {
+                    <div class="summary-row"><span>Coupon @_cart.CouponCode</span><span data-testid="checkout-discount">-@_cart.Discount.ToMoney()</span></div>
+                }
+                <div class="summary-row"><span>Shipping</span><span data-testid="checkout-shipping-cost">@(_cart.ShippingCost == 0 ? "Free" : _cart.ShippingCost.ToMoney())</span></div>
+                <MudDivider Class="my-2" />
+                <div class="summary-row summary-total"><span>Total</span><span data-testid="checkout-total">@_cart.Total.ToMoney()</span></div>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">Includes @_cart.IncludedVat.ToMoney() VAT. No real payment provider is connected.</MudText>
             </MudPaper>
         </MudItem>
     </MudGrid>
 }
 </div>
-

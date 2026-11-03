@@ -1,10 +1,7 @@
 @page "/products/{ProductId}"
-@inject IProductCatalog Catalog
-@inject ICartService Cart
-@inject ISnackbar Snackbar
-@inject IDemoAuthService Auth
+@inherits ShopPageBase
 
-<PageTitle>Product details - ShopDemo</PageTitle>
+<PageTitle>@(_product is null ? "Product details" : _product.Name) - ShopDemo</PageTitle>
 <div data-testid="product-details">
 <MudButton Href="/" StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Text" Class="mb-3">Back to catalog</MudButton>
 @if (_loading)
@@ -13,7 +10,7 @@
 }
 else if (_product is null)
 {
-    <MudAlert Severity="Severity.Warning">This product could not be found.</MudAlert>
+    <MudAlert data-testid="product-not-found" Severity="Severity.Warning">This product could not be found.</MudAlert>
 }
 else
 {
@@ -31,20 +28,43 @@ else
                         </MudItem>
                         <MudItem xs="12" md="6">
                             <MudChip T="string" data-testid="product-overview-category" Color="Color.Secondary" Variant="Variant.Outlined">@_product.Category</MudChip>
+                            @if (_product.IsOnSale)
+                            {
+                                <MudChip T="string" data-testid="product-overview-sale-badge" Color="Color.Error" Size="Size.Small">Sale</MudChip>
+                            }
                             <MudText data-testid="product-overview-name" Typo="Typo.h4" Class="mt-3">@_product.Name</MudText>
+                            <RatingStars TestId="product-overview-rating" Value="@_product.AverageRating" Count="@_product.ReviewCount" />
                             <MudText data-testid="product-overview-description" Typo="Typo.body1" Class="mt-3">@_product.Description</MudText>
-                            <MudText data-testid="product-overview-price" Typo="Typo.h5" Color="Color.Primary" Class="mt-4">@_product.Price.ToString("C")</MudText>
+                            <MudText data-testid="product-overview-price" Typo="Typo.h5" Color="Color.Primary" Class="mt-4">@_product.Price.ToMoney()</MudText>
+                            @if (_product.IsOnSale)
+                            {
+                                <MudText data-testid="product-overview-original-price" Typo="Typo.body2" Class="price-original">@_product.OriginalPrice.ToMoney()</MudText>
+                            }
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Includes 20% VAT</MudText>
                             @if (_product.IsAvailable)
                             {
-                                <MudText Color="Color.Success" Class="my-2">@_product.Stock available</MudText>
-                                @if (Auth.CurrentUser?.Role != DemoRole.StoreManager)
+                                <MudText data-testid="product-overview-stock" Color="Color.Success" Class="my-2">@_product.Stock available</MudText>
+                                @if (!Auth.IsManager)
                                 {
-                                    <MudButton data-testid="product-details-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddToCartAsync">Add to cart</MudButton>
+                                    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mt-2">
+                                        <div data-testid="product-details-quantity" style="max-width:8rem">
+                                            <MudNumericField T="int" Label="Quantity" Min="1" Max="@MaxQuantity" @bind-Value="_quantity" Variant="Variant.Outlined" />
+                                        </div>
+                                        <MudButton data-testid="product-details-add" Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddToCartAsync">Add to cart</MudButton>
+                                    </MudStack>
                                 }
                             }
                             else
                             {
-                                <MudAlert Severity="Severity.Error" Class="my-3">This product is currently out of stock.</MudAlert>
+                                <MudAlert data-testid="product-overview-out-of-stock" Severity="Severity.Error" Class="my-3">This product is currently out of stock.</MudAlert>
+                            }
+                            @if (!Auth.IsManager)
+                            {
+                                <MudButton data-testid="product-details-wishlist"
+                                           Class="mt-3"
+                                           Variant="Variant.Outlined"
+                                           StartIcon="@(_product.IsInWishlist ? Icons.Material.Filled.Favorite : Icons.Material.Filled.FavoriteBorder)"
+                                           OnClick="@ToggleWishlistAsync">@(_product.IsInWishlist ? "Remove from wishlist" : "Add to wishlist")</MudButton>
                             }
                         </MudItem>
                     </MudGrid>
@@ -115,6 +135,77 @@ else
                             </MudDataGrid>
                         </div>
                     }
+                </div>
+            </ChildContent>
+        </MudTabPanel>
+        <MudTabPanel Text="@($"Reviews ({_product.ReviewCount})")">
+            <TabContent><span data-testid="product-reviews-tab">Reviews (@_product.ReviewCount)</span></TabContent>
+            <ChildContent>
+                <div data-testid="product-reviews-panel" class="pt-4">
+                    <MudGrid Spacing="4">
+                        <MudItem xs="12" md="4">
+                            <MudText Typo="Typo.h6">Customer rating</MudText>
+                            <MudText data-testid="product-reviews-average" Typo="Typo.h3">@(_product.ReviewCount == 0 ? "–" : _product.AverageRating.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture))</MudText>
+                            <RatingStars TestId="product-reviews-rating" Value="@_product.AverageRating" Count="@_product.ReviewCount" />
+                            @for (var level = 5; level >= 1; level--)
+                            {
+                                var stars = level;
+                                var count = _product.RatingDistribution[stars - 1];
+                                <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudText Typo="Typo.caption" Style="width:3rem">@stars ★</MudText>
+                                    <MudProgressLinear Value="@(_product.ReviewCount == 0 ? 0 : 100.0 * count / _product.ReviewCount)" Color="Color.Warning" Style="flex:1" />
+                                    <MudText data-testid="@($"product-reviews-count-{stars}")" Typo="Typo.caption" Style="width:2rem">@count</MudText>
+                                </MudStack>
+                            }
+                        </MudItem>
+                        <MudItem xs="12" md="8">
+                            @if (Auth.IsShopper && !HasReviewed)
+                            {
+                                <MudPaper Class="pa-4 mb-4" data-testid="review-form">
+                                    <MudText Typo="Typo.h6">Write a review</MudText>
+                                    <div data-testid="review-rating"><MudRating @bind-SelectedValue="_reviewRating" MaxValue="5" /></div>
+                                    <MudTextField T="string" data-testid="review-title" Label="Title" @bind-Value="_reviewTitle" MaxLength="80" Variant="Variant.Outlined" Class="mb-2" />
+                                    <MudTextField T="string" data-testid="review-comment" Label="Your review" @bind-Value="_reviewComment" Lines="3" MaxLength="1000" Variant="Variant.Outlined" Class="mb-2" />
+                                    @if (_reviewError is not null)
+                                    {
+                                        <MudAlert data-testid="review-error" Severity="Severity.Error" Class="mb-2">@_reviewError</MudAlert>
+                                    }
+                                    <MudButton data-testid="review-submit" Variant="Variant.Filled" Color="Color.Primary" OnClick="@SubmitReviewAsync">Submit review</MudButton>
+                                </MudPaper>
+                            }
+                            else if (!Auth.IsAuthenticated)
+                            {
+                                <MudAlert data-testid="review-login-hint" Severity="Severity.Info" Class="mb-4">
+                                    <MudLink Href="@($"/login?returnUrl=%2Fproducts%2F{ProductId}")">Log in</MudLink> to write a review.
+                                </MudAlert>
+                            }
+                            else if (Auth.IsShopper)
+                            {
+                                <MudAlert data-testid="review-already-reviewed" Severity="Severity.Success" Class="mb-4">Thank you, you have already reviewed this product.</MudAlert>
+                            }
+                            @if (_reviews.Count == 0)
+                            {
+                                <MudAlert data-testid="reviews-empty" Severity="Severity.Info">There are no reviews yet.</MudAlert>
+                            }
+                            <MudStack Spacing="2" data-testid="review-list">
+                                @foreach (var review in _reviews)
+                                {
+                                    <div class="review-card" data-testid="@($"review-{review.Id}")" @key="review.Id">
+                                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                                            <RatingStars Value="@review.Rating" Count="1" TestId="@($"review-stars-{review.Id}")" />
+                                            @if (Auth.CurrentUser is { } viewer && (viewer.Id == review.UserId || Auth.IsManager))
+                                            {
+                                                <MudIconButton data-testid="@($"review-delete-{review.Id}")" Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" aria-label="Delete review" OnClick="@(() => DeleteReviewAsync(review.Id))" />
+                                            }
+                                        </MudStack>
+                                        <MudText data-testid="@($"review-title-{review.Id}")" Typo="Typo.subtitle1">@review.Title</MudText>
+                                        <MudText data-testid="@($"review-text-{review.Id}")" Typo="Typo.body2">@review.Comment</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@review.AuthorName · @review.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd")</MudText>
+                                    </div>
+                                }
+                            </MudStack>
+                        </MudItem>
+                    </MudGrid>
                 </div>
             </ChildContent>
         </MudTabPanel>

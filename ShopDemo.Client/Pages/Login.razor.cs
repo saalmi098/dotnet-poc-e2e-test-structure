@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using System.ComponentModel.DataAnnotations;
 
 namespace ShopDemo.Client.Pages;
@@ -12,25 +11,22 @@ public partial class Login
     private string? _error;
     private bool _submitting;
 
+    private string RegisterHref => string.IsNullOrEmpty(ReturnUrl)
+        ? "/register"
+        : $"/register?returnUrl={Uri.EscapeDataString(ReturnUrl)}";
+
     private async Task LoginAsync()
     {
         _submitting = true;
         _error = null;
         try
         {
-            if (await Auth.LoginAsync(_model.Email, _model.Password))
-            {
-                var destination = ReturnUrl is "/checkout" or "/orders" or "/manage/inventory" ? ReturnUrl : "/";
-                Navigation.NavigateTo(destination);
-            }
-            else
-            {
-                _error = "Those demo credentials were not recognized.";
-            }
+            await Auth.LoginAsync(_model.Email, _model.Password);
+            Navigation.NavigateTo(SafeReturnUrl(ReturnUrl));
         }
-        catch (Exception exception)
+        catch (ApiException exception)
         {
-            _error = $"Login configuration could not be loaded. {exception.Message}";
+            _error = exception.Message;
         }
         finally
         {
@@ -40,10 +36,10 @@ public partial class Login
 
     private sealed class LoginModel
     {
-        [Required, EmailAddress]
+        [Required(ErrorMessage = "Enter your email address."), EmailAddress(ErrorMessage = "Enter a valid email address.")]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [Required(ErrorMessage = "Enter your password.")]
         public string Password { get; set; } = string.Empty;
     }
 }

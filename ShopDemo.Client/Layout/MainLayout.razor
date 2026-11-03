@@ -1,7 +1,7 @@
 @implements IDisposable
 @inherits LayoutComponentBase
-@inject IDemoAuthService Auth
-@inject ICartService Cart
+@inject AuthState Auth
+@inject CartState Basket
 @inject NavigationManager Navigation
 
 <MudThemeProvider />
@@ -15,23 +15,35 @@
                        Color="Color.Inherit"
                        Edge="Edge.Start"
                        OnClick="@ToggleDrawer"
+                       data-testid="nav-menu-toggle"
                        aria-label="Open navigation" />
-        <MudText Typo="Typo.h6" Class="brand">ShopDemo</MudText>
+        <MudLink Href="/" Underline="Underline.None" Color="Color.Inherit" data-testid="nav-brand">
+            <MudText Typo="Typo.h6" Class="brand">ShopDemo</MudText>
+        </MudLink>
         <MudSpacer />
         <MudHidden Breakpoint="Breakpoint.SmAndDown">
             <MudButton data-testid="nav-catalog-desktop" Href="/" Color="Color.Inherit">Catalog</MudButton>
-            <MudButton data-testid="nav-cart-desktop" Href="/cart" Color="Color.Inherit">Cart (@_cartCount)</MudButton>
+            @if (Auth.IsManager)
+            {
+                <MudButton data-testid="nav-dashboard-desktop" Href="/manage" Color="Color.Inherit">Dashboard</MudButton>
+                <MudButton data-testid="nav-inventory-desktop" Href="/manage/inventory" Color="Color.Inherit">Inventory</MudButton>
+                <MudButton data-testid="nav-products-desktop" Href="/manage/products" Color="Color.Inherit">Products</MudButton>
+                <MudButton data-testid="nav-coupons-desktop" Href="/manage/coupons" Color="Color.Inherit">Coupons</MudButton>
+            }
+            @if (!Auth.IsManager)
+            {
+                <MudButton data-testid="nav-wishlist-desktop" Href="/wishlist" Color="Color.Inherit">Wishlist</MudButton>
+            }
+            <MudButton data-testid="nav-cart-desktop" Href="/cart" Color="Color.Inherit">Cart (@Basket.ItemCount)</MudButton>
             @if (Auth.CurrentUser is null)
             {
                 <MudButton data-testid="nav-login-desktop" Href="/login" Color="Color.Inherit">Log in</MudButton>
+                <MudButton data-testid="nav-register-desktop" Href="/register" Color="Color.Inherit">Register</MudButton>
             }
             else
             {
-                @if (Auth.CurrentUser.Role == DemoRole.StoreManager)
-                {
-                    <MudButton data-testid="nav-inventory-desktop" Href="/manage/inventory" Color="Color.Inherit">Inventory</MudButton>
-                }
                 <MudButton data-testid="nav-orders-desktop" Href="/orders" Color="Color.Inherit">Orders</MudButton>
+                <MudButton data-testid="nav-account-desktop" Href="/account" Color="Color.Inherit">@Auth.CurrentUser.DisplayName</MudButton>
                 <MudButton data-testid="nav-logout-desktop" OnClick="@Logout" Color="Color.Inherit">Log out</MudButton>
             }
         </MudHidden>
@@ -40,18 +52,27 @@
     <MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.Left" Variant="DrawerVariant.Temporary">
         <MudNavMenu>
             <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Storefront">Catalog</MudNavLink>
-            <MudNavLink Href="/cart" Icon="@Icons.Material.Filled.ShoppingCart">Cart (@_cartCount)</MudNavLink>
-            @if (Auth.CurrentUser is null)
+            @if (Auth.IsManager)
             {
-                <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Log in</MudNavLink>
+                <MudNavLink Href="/manage" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+                <MudNavLink Href="/manage/inventory" Icon="@Icons.Material.Filled.Inventory">Manage inventory</MudNavLink>
+                <MudNavLink Href="/manage/products" Icon="@Icons.Material.Filled.Category">Manage products</MudNavLink>
+                <MudNavLink Href="/manage/coupons" Icon="@Icons.Material.Filled.LocalOffer">Manage coupons</MudNavLink>
             }
             else
             {
-                @if (Auth.CurrentUser.Role == DemoRole.StoreManager)
-                {
-                    <MudNavLink Href="/manage/inventory" Icon="@Icons.Material.Filled.Inventory">Manage inventory</MudNavLink>
-                }
+                <MudNavLink Href="/wishlist" Icon="@Icons.Material.Filled.Favorite">Wishlist</MudNavLink>
+            }
+            <MudNavLink Href="/cart" Icon="@Icons.Material.Filled.ShoppingCart">Cart (@Basket.ItemCount)</MudNavLink>
+            @if (Auth.CurrentUser is null)
+            {
+                <MudNavLink Href="/login" Icon="@Icons.Material.Filled.Login">Log in</MudNavLink>
+                <MudNavLink Href="/register" Icon="@Icons.Material.Filled.PersonAdd">Register</MudNavLink>
+            }
+            else
+            {
                 <MudNavLink Href="/orders" Icon="@Icons.Material.Filled.ReceiptLong">Order history</MudNavLink>
+                <MudNavLink Href="/account" Icon="@Icons.Material.Filled.Person">My account</MudNavLink>
                 <MudButton data-testid="nav-logout-drawer" OnClick="@Logout" StartIcon="@Icons.Material.Filled.Logout" Class="drawer-action">Log out</MudButton>
             }
         </MudNavMenu>
@@ -61,40 +82,35 @@
         <MudContainer MaxWidth="MaxWidth.Large" Class="page-content">
             @Body
         </MudContainer>
+        <footer class="site-footer" data-testid="site-footer">
+            <MudText Typo="Typo.caption">ShopDemo · a demonstration webshop for end-to-end test experiments · prices include 20% VAT · free standard shipping from @Pricing.FreeStandardShippingThreshold.ToMoney()</MudText>
+        </footer>
     </MudMainContent>
 </MudLayout>
 
 @code {
     private bool _drawerOpen;
-    private int _cartCount;
 
     protected override void OnInitialized()
     {
-        Auth.AuthenticationStateChanged += OnAuthenticationStateChanged;
-        Cart.CartChanged += OnCartChanged;
-        _cartCount = Cart.ItemCount;
+        Auth.Changed += OnStateChanged;
+        Basket.Changed += OnStateChanged;
     }
 
     private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
 
-    private void Logout()
+    private async Task Logout()
     {
         _drawerOpen = false;
-        Auth.Logout();
+        await Auth.LogoutAsync();
         Navigation.NavigateTo("/");
     }
 
-    private void OnAuthenticationStateChanged() => _ = InvokeAsync(StateHasChanged);
-
-    private void OnCartChanged()
-    {
-        _cartCount = Cart.ItemCount;
-        _ = InvokeAsync(StateHasChanged);
-    }
+    private void OnStateChanged() => _ = InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
-        Auth.AuthenticationStateChanged -= OnAuthenticationStateChanged;
-        Cart.CartChanged -= OnCartChanged;
+        Auth.Changed -= OnStateChanged;
+        Basket.Changed -= OnStateChanged;
     }
 }

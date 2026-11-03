@@ -80,3 +80,76 @@ html, body {
     right: .75rem;
     top: .5rem;
 }
+
+.site-footer {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: #6b7686;
+    border-top: 1px solid #e6e8ec;
+}
+
+.product-card .sale-badge {
+    position: absolute;
+    top: .75rem;
+    left: .75rem;
+    z-index: 1;
+}
+
+.product-card-wrapper {
+    position: relative;
+}
+
+.price-original {
+    text-decoration: line-through;
+    color: #8a94a3;
+    margin-right: .5rem;
+}
+
+.price-sale {
+    color: #c62828;
+}
+
+.filter-bar {
+    background: #fff;
+    border: 1px solid #e6e8ec;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.stat-tile {
+    padding: 1rem 1.25rem;
+    background: #fff;
+    border: 1px solid #e6e8ec;
+    border-radius: 8px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: .25rem 0;
+}
+
+.summary-total {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.timeline-entry {
+    padding: .35rem 0;
+    border-left: 3px solid #594ae2;
+    padding-left: .75rem;
+    margin-left: .25rem;
+}
+
+.review-card {
+    background: #fff;
+    border: 1px solid #e6e8ec;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.rating-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+}

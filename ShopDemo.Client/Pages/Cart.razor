@@ -1,64 +1,105 @@
 @page "/cart"
-@inject ICartService CartService
-@inject NavigationManager Navigation
-@inject ISnackbar Snackbar
+@inherits ShopPageBase
+@implements IDisposable
 
 <PageTitle>Your cart - ShopDemo</PageTitle>
 <div data-testid="cart-page">
 <MudText Typo="Typo.h4" GutterBottom="true">Your cart</MudText>
-@if (CartService.Items.Count == 0)
+@if (_loading)
 {
-    <MudAlert Severity="Severity.Info" Class="my-4">Your cart is empty. <MudLink Href="/">Browse the catalog</MudLink> to add something.</MudAlert>
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading your cart...</MudText></div>
+}
+else if (_cart.Items.Count == 0)
+{
+    <MudAlert data-testid="cart-empty" Severity="Severity.Info" Class="my-4">Your cart is empty. <MudLink Href="/">Browse the catalog</MudLink> to add something.</MudAlert>
 }
 else
 {
+    <MudGrid Spacing="4">
+    <MudItem xs="12" md="8">
     <MudPaper Class="pa-4">
-        @foreach (var line in CartService.Items)
+        @foreach (var line in _cart.Items)
         {
-            <MudGrid Class="cart-line py-3" data-testid="@($"cart-item-{line.Product.Id}")" @key="line.Product.Id">
+            <MudGrid Class="cart-line py-3" data-testid="@($"cart-item-{line.ProductId}")" @key="line.ProductId">
                 <MudItem xs="12" sm="5">
-                    <MudText Typo="Typo.subtitle1">@line.Product.Name</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Secondary">@line.Product.Price.ToString("C") each</MudText>
+                    <MudLink Href="@($"/products/{line.ProductId}")" Typo="Typo.subtitle1" data-testid="@($"cart-item-name-{line.ProductId}")">@line.ProductName</MudLink>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@line.UnitPrice.ToMoney() each</MudText>
+                    @if (line.Quantity > line.Stock)
+                    {
+                        <MudText data-testid="@($"cart-item-warning-{line.ProductId}")" Typo="Typo.caption" Color="Color.Error">Only @line.Stock left in stock.</MudText>
+                    }
                 </MudItem>
                 <MudItem xs="6" sm="3">
-                    <div data-testid="@($"cart-quantity-{line.Product.Id}")">
+                    <div data-testid="@($"cart-quantity-{line.ProductId}")">
                     <MudNumericField T="int"
                                      Label="Quantity"
                                      Min="1"
-                                     Max="@line.Product.Stock"
+                                     Max="@Math.Min(line.Stock, Pricing.MaxQuantityPerLine)"
                                      Value="@line.Quantity"
-                                     ValueChanged="@(quantity => UpdateQuantityAsync(line.Product.Id, quantity))"
+                                     ValueChanged="@(quantity => UpdateQuantityAsync(line.ProductId, quantity))"
                                      Variant="Variant.Outlined" />
                     </div>
                 </MudItem>
                 <MudItem xs="4" sm="2">
-                    <MudText Typo="Typo.subtitle1">@line.LineTotal.ToString("C")</MudText>
+                    <MudText data-testid="@($"cart-line-total-{line.ProductId}")" Typo="Typo.subtitle1">@line.LineTotal.ToMoney()</MudText>
                 </MudItem>
                 <MudItem xs="2" sm="2" Class="text-right">
                     <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                   data-testid="@($"cart-remove-{line.Product.Id}")"
+                                   data-testid="@($"cart-remove-{line.ProductId}")"
                                    Color="Color.Error"
-                                   aria-label="@($"Remove {line.Product.Name}")"
-                                   OnClick="@(() => RemoveProduct(line.Product.Id))" />
+                                   aria-label="@($"Remove {line.ProductName}")"
+                                   OnClick="@(() => RemoveProduct(line.ProductId))" />
                 </MudItem>
             </MudGrid>
         }
-        <MudDivider Class="my-3" />
-        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-            <MudText data-testid="cart-item-count">@CartService.ItemCount item(s)</MudText>
-            <MudText data-testid="cart-subtotal" Typo="Typo.h6">Subtotal: @CartService.Subtotal.ToString("C")</MudText>
-        </MudStack>
         <MudStack Row="true" Justify="Justify.SpaceBetween" Class="mt-4">
             <MudButton Href="/" Variant="Variant.Outlined">Continue shopping</MudButton>
-            @if (Auth.CurrentUser?.Role == DemoRole.StoreManager)
-            {
-                <MudText Color="Color.Secondary">Sign in as a shopper to check out.</MudText>
-            }
-            else
-            {
-                <MudButton data-testid="cart-checkout" Href="@CheckoutHref" Color="Color.Primary" Variant="Variant.Filled">Proceed to checkout</MudButton>
-            }
         </MudStack>
     </MudPaper>
+    </MudItem>
+    <MudItem xs="12" md="4">
+    <MudPaper Class="pa-4" data-testid="cart-summary">
+        <MudText Typo="Typo.h6" GutterBottom="true">Summary</MudText>
+        <div class="summary-row"><span data-testid="cart-item-count">@_cart.ItemCount item(s)</span></div>
+        <div class="summary-row"><span>Subtotal</span><span data-testid="cart-subtotal">@_cart.Subtotal.ToMoney()</span></div>
+        @if (_cart.CouponCode is not null)
+        {
+            <div class="summary-row">
+                <span>Coupon <strong data-testid="cart-coupon-code">@_cart.CouponCode</strong>
+                    <MudIconButton data-testid="cart-coupon-remove" Icon="@Icons.Material.Filled.Close" Size="Size.Small" aria-label="Remove coupon" OnClick="@RemoveCouponAsync" /></span>
+                <span data-testid="cart-discount">-@_cart.Discount.ToMoney()</span>
+            </div>
+        }
+        <div class="summary-row"><span>Shipping (standard)</span><span data-testid="cart-shipping">@(_cart.ShippingCost == 0 ? "Free" : _cart.ShippingCost.ToMoney())</span></div>
+        @if (_cart.FreeShippingRemaining > 0)
+        {
+            <MudText data-testid="cart-free-shipping-hint" Typo="Typo.caption" Color="Color.Secondary">Add @_cart.FreeShippingRemaining.ToMoney() more for free standard shipping.</MudText>
+        }
+        <MudDivider Class="my-2" />
+        <div class="summary-row summary-total"><span>Total</span><span data-testid="cart-total">@_cart.Total.ToMoney()</span></div>
+        <MudText data-testid="cart-vat" Typo="Typo.caption" Color="Color.Secondary">Includes @_cart.IncludedVat.ToMoney() VAT</MudText>
+
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mt-4" Spacing="1">
+            <MudTextField T="string" data-testid="cart-coupon-input" Label="Coupon code" @bind-Value="_couponCode" Variant="Variant.Outlined" Margin="Margin.Dense" />
+            <MudButton data-testid="cart-coupon-apply" Variant="Variant.Outlined" OnClick="@ApplyCouponAsync">Apply</MudButton>
+        </MudStack>
+        @if (_couponError is not null)
+        {
+            <MudAlert data-testid="cart-coupon-error" Severity="Severity.Error" Dense="true" Class="mt-2">@_couponError</MudAlert>
+        }
+
+        <div class="mt-4">
+        @if (Auth.IsManager)
+        {
+            <MudText data-testid="cart-manager-hint" Color="Color.Secondary">Sign in as a shopper to check out.</MudText>
+        }
+        else
+        {
+            <MudButton data-testid="cart-checkout" FullWidth="true" Href="@CheckoutHref" Color="Color.Primary" Variant="Variant.Filled">Proceed to checkout</MudButton>
+        }
+        </div>
+    </MudPaper>
+    </MudItem>
+    </MudGrid>
 }
 </div>

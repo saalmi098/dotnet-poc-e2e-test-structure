@@ -1,53 +1,86 @@
 @page "/orders"
-@inject IDemoAuthService Auth
-@inject ICheckoutService Checkout
-@inject NavigationManager Navigation
+@inherits ShopPageBase
 
 <PageTitle>Order history - ShopDemo</PageTitle>
 <div data-testid="orders-page">
 <MudText Typo="Typo.h4" GutterBottom="true">Order history</MudText>
-<MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4">
-    @if (Auth.CurrentUser?.Role == DemoRole.StoreManager)
-    {
-        <span>Showing all demo orders created in this browser session. This history is cleared on refresh.</span>
-    }
-    else
-    {
-        <span>Showing your orders from this browser session. This history is cleared on refresh.</span>
-    }
-</MudAlert>
 @if (Auth.CurrentUser is null)
 {
-    <MudAlert Severity="Severity.Info">Redirecting to demo login...</MudAlert>
-}
-else if (_orders.Count == 0)
-{
-    <MudAlert Severity="Severity.Info">No orders have been placed in this session.</MudAlert>
+    <MudAlert Severity="Severity.Info">Redirecting to login...</MudAlert>
 }
 else
 {
-    <MudExpansionPanels>
-        @foreach (var order in _orders)
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4" data-testid="orders-scope-hint">
+        @if (Auth.IsManager)
         {
-            <MudExpansionPanel data-testid="@($"order-card-{order.Number}")" @key="order.Number">
-                <TitleContent>
-                    <MudStack Row="true" Justify="Justify.SpaceBetween">
-                        <MudText><strong>@order.Number</strong> · @order.CreatedAt.ToLocalTime().ToString("g")</MudText>
-                        <MudText>@order.Total.ToString("C")</MudText>
-                    </MudStack>
-                </TitleContent>
-                <ChildContent>
-                    <MudText>Customer: @order.CustomerName (@order.CustomerEmail)</MudText>
-                    @foreach (var line in order.Items)
-                    {
-                        <MudStack Row="true" Justify="Justify.SpaceBetween" Class="py-1">
-                            <MudText>@line.Quantity × @line.ProductName</MudText>
-                            <MudText>@line.LineTotal.ToString("C")</MudText>
-                        </MudStack>
-                    }
-                </ChildContent>
-            </MudExpansionPanel>
+            <span>Showing orders from all customers, newest first.</span>
         }
-    </MudExpansionPanels>
+        else
+        {
+            <span>Showing your orders, newest first.</span>
+        }
+    </MudAlert>
+    <MudGrid Class="mb-2">
+        <MudItem xs="12" sm="4">
+            <MudSelect T="OrderStatus?" data-testid="orders-status-filter" Label="Status" Variant="Variant.Outlined" @bind-Value="_status" @bind-Value:after="OnFilterChangedAsync" Clearable="true">
+                @foreach (var status in Enum.GetValues<OrderStatus>())
+                {
+                    <MudSelectItem T="OrderStatus?" Value="@((OrderStatus?)status)">@status</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        @if (Auth.IsManager)
+        {
+            <MudItem xs="12" sm="5">
+                <MudTextField T="string" data-testid="orders-search" Label="Search order number, name or email" Variant="Variant.Outlined" @bind-Value="_search" @bind-Value:after="OnFilterChangedAsync" Immediate="true" DebounceInterval="300" Clearable="true" />
+            </MudItem>
+        }
+    </MudGrid>
+    @if (_loading)
+    {
+        <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading orders...</MudText></div>
+    }
+    else if (_error is not null)
+    {
+        <MudAlert data-testid="orders-error" Severity="Severity.Error">@_error</MudAlert>
+    }
+    else if (_result is null || _result.Items.Count == 0)
+    {
+        <MudAlert data-testid="orders-empty" Severity="Severity.Info">No orders found.</MudAlert>
+    }
+    else
+    {
+        <MudExpansionPanels>
+            @foreach (var order in _result.Items)
+            {
+                <MudExpansionPanel data-testid="@($"order-card-{order.Number}")" @key="order.Number">
+                    <TitleContent>
+                        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                            <MudText><strong data-testid="@($"order-number-{order.Number}")">@order.Number</strong> · @order.CreatedAt.ToLocalTime().ToString("g")</MudText>
+                            <OrderStatusChip Status="@order.Status" TestId="@($"order-status-{order.Number}")" />
+                            <MudText data-testid="@($"order-total-{order.Number}")">@order.Total.ToMoney()</MudText>
+                        </MudStack>
+                    </TitleContent>
+                    <ChildContent>
+                        <MudText>Customer: @order.CustomerName (@order.CustomerEmail)</MudText>
+                        @foreach (var line in order.Lines)
+                        {
+                            <div class="summary-row">
+                                <span>@line.Quantity × @line.ProductName</span>
+                                <span>@line.LineTotal.ToMoney()</span>
+                            </div>
+                        }
+                        <MudButton data-testid="@($"order-details-link-{order.Number}")" Href="@($"/orders/{order.Number}")" Variant="Variant.Outlined" Size="Size.Small" Class="mt-2">Order details</MudButton>
+                    </ChildContent>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+        @if (_result.TotalPages > 1)
+        {
+            <div data-testid="orders-pagination" class="d-flex justify-center mt-4">
+                <MudPagination Count="@_result.TotalPages" Selected="@_page" SelectedChanged="@OnPageChangedAsync" />
+            </div>
+        }
+    }
 }
 </div>

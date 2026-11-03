@@ -1,0 +1,44 @@
+@page "/wishlist"
+@inherits ShopPageBase
+
+<PageTitle>Wishlist - ShopDemo</PageTitle>
+<div data-testid="wishlist-page">
+<MudText Typo="Typo.h4" GutterBottom="true">Your wishlist</MudText>
+@if (Auth.CurrentUser is null)
+{
+    <MudAlert Severity="Severity.Info">Redirecting to login...</MudAlert>
+}
+else if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading your wishlist...</MudText></div>
+}
+else if (_items.Count == 0)
+{
+    <MudAlert data-testid="wishlist-empty" Severity="Severity.Info">Your wishlist is empty. <MudLink Href="/">Browse the catalog</MudLink> and tap the heart on products you like.</MudAlert>
+}
+else
+{
+    <MudGrid Spacing="3">
+        @foreach (var product in _items)
+        {
+            <MudItem xs="12" sm="6" md="4" @key="product.Id">
+                <MudCard data-testid="@($"wishlist-item-{product.Id}")" Class="product-card">
+                    <MudCardMedia Image="@product.ImageUrl" Height="150" />
+                    <MudCardContent>
+                        <MudLink Href="@($"/products/{product.Id}")" Typo="Typo.h6" data-testid="@($"wishlist-name-{product.Id}")">@product.Name</MudLink>
+                        <MudText data-testid="@($"wishlist-price-{product.Id}")" Typo="Typo.subtitle1" Color="Color.Primary">@product.Price.ToMoney()</MudText>
+                        <MudText data-testid="@($"wishlist-stock-{product.Id}")" Typo="Typo.caption" Color="@(product.IsAvailable ? Color.Success : Color.Error)">
+                            @(product.IsAvailable ? $"{product.Stock} in stock" : "Out of stock")
+                        </MudText>
+                    </MudCardContent>
+                    <MudCardActions Class="px-4 pb-4">
+                        <MudButton data-testid="@($"wishlist-remove-{product.Id}")" Variant="Variant.Text" Color="Color.Error" OnClick="@(() => RemoveAsync(product))">Remove</MudButton>
+                        <MudSpacer />
+                        <MudButton data-testid="@($"wishlist-add-to-cart-{product.Id}")" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!product.IsAvailable)" OnClick="@(() => AddToCartAsync(product.Id))">Add to cart</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+}
+</div>

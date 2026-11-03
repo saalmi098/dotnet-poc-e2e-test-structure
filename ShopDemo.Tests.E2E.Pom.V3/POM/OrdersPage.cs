@@ -1,3 +1,4 @@
+using ShopDemo.Tests.E2E.Shared;
 using Microsoft.Playwright;
 using ShopDemo.Tests.E2E.Pom.V3.Infrastructure;
 
@@ -15,5 +16,5 @@ public sealed class OrdersPage : PageComponent, IPageComponent<OrdersPage>
     static OrdersPage IPageComponent<OrdersPage>.CreateInstance(IPage page, ILocator? baseLocator) => new(page);
 
     public async Task<bool> ContainsOrder(string orderNumber) =>
-        await Root.Value.GetByTestId($"order-card-{orderNumber}").CountAsync() > 0;
+        await Root.Value.GetByTestId($"order-card-{orderNumber}").IsEventuallyVisibleAsync();
 }

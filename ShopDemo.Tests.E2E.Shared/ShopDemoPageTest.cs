@@ -5,6 +5,12 @@ namespace ShopDemo.Tests.E2E.Shared;
 
 public abstract class ShopDemoPageTest : PageTest
 {
+    public override async ValueTask InitializeAsync()
+    {
+        await TestDatabase.ResetAsync();
+        await base.InitializeAsync();
+    }
+
     public override BrowserNewContextOptions ContextOptions() => new()
     {
         BaseURL = E2ETestSettings.BaseUrl,

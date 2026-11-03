@@ -1,3 +1,5 @@
+> **Historical note:** this is the original brief for the client-only proof of concept. The application has since been extended with an ASP.NET Core API, a database (SQLite/PostgreSQL), and many shop features; see `README.md` and `docs/application.md` for the current system.
+
 Act as a senior .NET developer. Build a small, runnable proof-of-concept webshop that demonstrates clean architecture and a few useful user flows.
 
 ## Technology

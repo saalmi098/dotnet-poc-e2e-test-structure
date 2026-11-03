@@ -1,0 +1,106 @@
+@page "/orders/{Number}"
+@inherits ShopPageBase
+
+<PageTitle>Order @Number - ShopDemo</PageTitle>
+<div data-testid="order-details-page">
+<MudButton Href="/orders" StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Text" Class="mb-3">Back to orders</MudButton>
+@if (Auth.CurrentUser is null)
+{
+    <MudAlert Severity="Severity.Info">Redirecting to login...</MudAlert>
+}
+else if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading order...</MudText></div>
+}
+else if (_order is null)
+{
+    <MudAlert data-testid="order-not-found" Severity="Severity.Warning">@(_error ?? "This order could not be found.")</MudAlert>
+}
+else
+{
+    <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="mb-3">
+        <MudText data-testid="order-details-number" Typo="Typo.h4">@_order.Number</MudText>
+        <OrderStatusChip Status="@_order.Status" TestId="order-details-status" />
+    </MudStack>
+    <MudText Typo="Typo.body2" Color="Color.Secondary">Placed @_order.CreatedAt.ToLocalTime().ToString("g") by @_order.CustomerName (@_order.CustomerEmail)</MudText>
+
+    <MudGrid Spacing="4" Class="mt-2">
+        <MudItem xs="12" md="7">
+            <MudPaper Class="pa-4" data-testid="order-lines">
+                <MudText Typo="Typo.h6" GutterBottom="true">Items</MudText>
+                @foreach (var line in _order.Lines)
+                {
+                    <div class="summary-row" data-testid="@($"order-line-{line.ProductId}")">
+                        <span><MudLink Href="@($"/products/{line.ProductId}")">@line.ProductName</MudLink> × @line.Quantity</span>
+                        <span>@line.LineTotal.ToMoney()</span>
+                    </div>
+                }
+                <MudDivider Class="my-2" />
+                <div class="summary-row"><span>Subtotal</span><span data-testid="order-details-subtotal">@_order.Subtotal.ToMoney()</span></div>
+                @if (_order.CouponCode is not null)
+                {
+                    <div class="summary-row"><span>Coupon @_order.CouponCode</span><span data-testid="order-details-discount">-@_order.Discount.ToMoney()</span></div>
+                }
+                <div class="summary-row"><span>Shipping (@_order.ShippingMethod)</span><span data-testid="order-details-shipping">@(_order.ShippingCost == 0 ? "Free" : _order.ShippingCost.ToMoney())</span></div>
+                <div class="summary-row summary-total"><span>Total</span><span data-testid="order-details-total">@_order.Total.ToMoney()</span></div>
+            </MudPaper>
+
+            <MudPaper Class="pa-4 mt-4" data-testid="order-address">
+                <MudText Typo="Typo.h6" GutterBottom="true">Delivery and payment</MudText>
+                <MudText>@_order.CustomerName</MudText>
+                <MudText>@_order.AddressLine</MudText>
+                <MudText>@_order.PostalCode @_order.City, @_order.Country</MudText>
+                <MudText Class="mt-2" data-testid="order-details-payment">Payment: @_order.PaymentReference</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="5">
+            <MudPaper Class="pa-4" data-testid="order-timeline">
+                <MudText Typo="Typo.h6" GutterBottom="true">Status history</MudText>
+                @foreach (var entry in _order.History)
+                {
+                    <div class="timeline-entry" data-testid="@($"order-timeline-{entry.Status}")">
+                        <strong>@entry.Status</strong> · <span>@entry.At.ToLocalTime().ToString("g")</span>
+                        @if (!string.IsNullOrWhiteSpace(entry.Note))
+                        {
+                            <div><MudText Typo="Typo.caption">@entry.Note</MudText></div>
+                        }
+                    </div>
+                }
+            </MudPaper>
+
+            @if (_order.CanCancel)
+            {
+                <MudPaper Class="pa-4 mt-4" data-testid="order-cancel-panel">
+                    @if (!_confirmCancel)
+                    {
+                        <MudButton data-testid="order-cancel" Color="Color.Error" Variant="Variant.Outlined" OnClick="@(() => _confirmCancel = true)">Cancel order</MudButton>
+                    }
+                    else
+                    {
+                        <MudText>Cancel this order? The items will be returned to stock.</MudText>
+                        <MudStack Row="true" Class="mt-2">
+                            <MudButton data-testid="order-cancel-confirm" Color="Color.Error" Variant="Variant.Filled" OnClick="@CancelAsync">Yes, cancel order</MudButton>
+                            <MudButton data-testid="order-cancel-abort" Variant="Variant.Text" OnClick="@(() => _confirmCancel = false)">Keep order</MudButton>
+                        </MudStack>
+                    }
+                </MudPaper>
+            }
+
+            @if (Auth.IsManager && _order.AllowedNextStatuses.Count > 0)
+            {
+                <MudPaper Class="pa-4 mt-4" data-testid="order-manage-panel">
+                    <MudText Typo="Typo.h6" GutterBottom="true">Update status</MudText>
+                    <MudTextField T="string" data-testid="order-status-note" Label="Note (optional)" Variant="Variant.Outlined" @bind-Value="_note" Class="mb-2" />
+                    <MudStack Row="true" Spacing="2">
+                        @foreach (var next in _order.AllowedNextStatuses)
+                        {
+                            <MudButton data-testid="@($"order-set-status-{next}")" Variant="Variant.Filled" Color="@(next == OrderStatus.Cancelled ? Color.Error : Color.Primary)" OnClick="@(() => UpdateStatusAsync(next))">Mark as @next</MudButton>
+                        }
+                    </MudStack>
+                </MudPaper>
+            }
+        </MudItem>
+    </MudGrid>
+}
+</div>

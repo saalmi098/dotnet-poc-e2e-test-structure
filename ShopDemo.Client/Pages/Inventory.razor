@@ -1,15 +1,11 @@
 @page "/manage/inventory"
-@inject IInventoryCatalog Catalog
-@inject IInventoryManagementService InventoryService
-@inject IDemoAuthService Auth
-@inject NavigationManager Navigation
-@inject ISnackbar Snackbar
+@inherits ShopPageBase
 
 <PageTitle>Manage inventory - ShopDemo</PageTitle>
 <div data-testid="inventory-page">
 <MudText Typo="Typo.h4" GutterBottom="true">Manage inventory</MudText>
 <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mb-4">
-    Update sample stock for this browser session. Changes reset when the page is refreshed.
+    Update the available stock of every product. Changes are stored in the database and are visible to shoppers immediately.
 </MudText>
 
 @if (_loading)
@@ -18,7 +14,7 @@
 }
 else if (_error is not null)
 {
-    <MudAlert Severity="Severity.Error">@_error</MudAlert>
+    <MudAlert data-testid="inventory-error" Severity="Severity.Error">@_error</MudAlert>
 }
 else
 {
@@ -29,7 +25,7 @@ else
                 <MudGrid Spacing="2" Class="inventory-grid">
                     <MudItem xs="12" sm="5">
                         <MudText Typo="Typo.h6">@product.Name</MudText>
-                        <MudText Typo="Typo.body2" Color="Color.Secondary">@product.Category · @product.Price.ToString("C")</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">@product.Category · @product.Price.ToMoney()@(product.IsActive ? "" : " · inactive")</MudText>
                         <MudText data-testid="@($"inventory-current-stock-{product.Id}")" Typo="Typo.caption" Color="@(product.IsAvailable ? Color.Success : Color.Error)">
                             @(product.IsAvailable ? $"{product.Stock} available" : "Out of stock")
                         </MudText>

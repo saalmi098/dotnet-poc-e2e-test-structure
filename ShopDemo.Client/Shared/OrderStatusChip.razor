@@ -1,0 +1,15 @@
+<MudChip T="string" data-testid="@TestId" Size="Size.Small" Color="@ColorFor(Status)" Variant="Variant.Filled">@Status</MudChip>
+
+@code {
+    [Parameter] public OrderStatus Status { get; set; }
+    [Parameter] public string? TestId { get; set; }
+
+    private static Color ColorFor(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => Color.Warning,
+        OrderStatus.Processing => Color.Info,
+        OrderStatus.Shipped => Color.Primary,
+        OrderStatus.Delivered => Color.Success,
+        _ => Color.Error
+    };
+}

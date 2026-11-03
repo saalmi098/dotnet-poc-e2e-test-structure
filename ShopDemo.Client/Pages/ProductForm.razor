@@ -1,0 +1,50 @@
+@page "/manage/products/new"
+@page "/manage/products/{ProductId}"
+@inherits ShopPageBase
+
+<PageTitle>@(IsNew ? "New product" : "Edit product") - ShopDemo</PageTitle>
+<div data-testid="product-form-page">
+<MudButton Href="/manage/products" StartIcon="@Icons.Material.Filled.ArrowBack" Variant="Variant.Text" Class="mb-3">Back to products</MudButton>
+<MudText Typo="Typo.h4" GutterBottom="true">@(IsNew ? "New product" : "Edit product")</MudText>
+@if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading product...</MudText></div>
+}
+else if (_loadError is not null)
+{
+    <MudAlert data-testid="product-form-load-error" Severity="Severity.Warning">@_loadError</MudAlert>
+}
+else
+{
+    <MudPaper Class="pa-5" data-testid="product-form">
+        <EditForm Model="@_model" OnValidSubmit="@SaveAsync">
+            <DataAnnotationsValidator />
+            <MudStack Spacing="3">
+                <MudTextField T="string" data-testid="product-form-id" Label="Product id (lowercase, hyphens)" @bind-Value="_model.Id" For="@(() => _model.Id)" ReadOnly="@(!IsNew)" Variant="Variant.Outlined" />
+                <MudTextField T="string" data-testid="product-form-name" Label="Name" @bind-Value="_model.Name" For="@(() => _model.Name)" Variant="Variant.Outlined" />
+                <MudTextField T="string" data-testid="product-form-description" Label="Description" @bind-Value="_model.Description" For="@(() => _model.Description)" Lines="3" Variant="Variant.Outlined" />
+                <MudSelect T="string" data-testid="product-form-category" Label="Category" @bind-Value="_model.Category" Variant="Variant.Outlined" Clearable="true">
+                    @foreach (var category in _categories)
+                    {
+                        <MudSelectItem T="string" Value="@category">@category</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudTextField T="string" data-testid="product-form-new-category" Label="...or a new category" @bind-Value="_model.NewCategory" Variant="Variant.Outlined" />
+                <MudGrid>
+                    <MudItem xs="6"><MudNumericField T="decimal" data-testid="product-form-price" Label="Price" @bind-Value="_model.Price" For="@(() => _model.Price)" Min="0m" Variant="Variant.Outlined" /></MudItem>
+                    <MudItem xs="6"><MudNumericField T="decimal?" data-testid="product-form-original-price" Label="Original price (optional, for sales)" @bind-Value="_model.OriginalPrice" Min="0m" Variant="Variant.Outlined" /></MudItem>
+                </MudGrid>
+                <MudNumericField T="int" data-testid="product-form-stock" Label="Stock" @bind-Value="_model.Stock" For="@(() => _model.Stock)" Min="0" Variant="Variant.Outlined" />
+                <MudTextField T="string" data-testid="product-form-image" Label="Image URL (optional)" @bind-Value="_model.ImageUrl" Variant="Variant.Outlined" />
+                <MudCheckBox T="bool" data-testid="product-form-active" @bind-Value="_model.IsActive" Label="Visible in the shop" />
+                <ValidationSummary />
+                @if (_error is not null)
+                {
+                    <MudAlert data-testid="product-form-error" Severity="Severity.Error">@_error</MudAlert>
+                }
+                <MudButton data-testid="product-form-save" ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Save product</MudButton>
+            </MudStack>
+        </EditForm>
+    </MudPaper>
+}
+</div>

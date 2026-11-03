@@ -1,0 +1,69 @@
+@page "/manage/coupons"
+@inherits ShopPageBase
+
+<PageTitle>Manage coupons - ShopDemo</PageTitle>
+<div data-testid="coupons-page">
+<MudText Typo="Typo.h4" GutterBottom="true">Manage coupons</MudText>
+@if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading coupons...</MudText></div>
+}
+else if (_loadError is not null)
+{
+    <MudAlert data-testid="coupons-error" Severity="Severity.Error">@_loadError</MudAlert>
+}
+else
+{
+    <MudGrid Spacing="4">
+        <MudItem xs="12" md="7">
+            <MudSimpleTable Dense="true" Hover="true" Striped="true" data-testid="coupons-table">
+                <thead><tr><th>Code</th><th>Discount</th><th>Min.</th><th>Used</th><th>Expires</th><th>Active</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var coupon in _coupons)
+                    {
+                        <tr data-testid="@($"coupon-row-{coupon.Code}")" @key="coupon.Code">
+                            <td><strong>@coupon.Code</strong><br /><MudText Typo="Typo.caption">@coupon.Description</MudText></td>
+                            <td>@Describe(coupon)</td>
+                            <td>@(coupon.MinSubtotal > 0 ? coupon.MinSubtotal.ToMoney() : "–")</td>
+                            <td data-testid="@($"coupon-used-{coupon.Code}")">@coupon.Redemptions@(coupon.MaxRedemptions is { } max ? $" / {max}" : "")</td>
+                            <td>@(coupon.ExpiresAt is { } expires ? expires.ToLocalTime().ToString("yyyy-MM-dd") : "–")</td>
+                            <td><MudSwitch T="bool" data-testid="@($"coupon-toggle-{coupon.Code}")" Value="@coupon.IsActive" ValueChanged="@(active => ToggleAsync(coupon, active))" Color="Color.Primary" aria-label="@($"Toggle {coupon.Code}")" /></td>
+                            <td><MudIconButton data-testid="@($"coupon-delete-{coupon.Code}")" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" aria-label="@($"Delete {coupon.Code}")" OnClick="@(() => DeleteAsync(coupon))" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        </MudItem>
+        <MudItem xs="12" md="5">
+            <MudPaper Class="pa-5" data-testid="coupon-form">
+                <MudText Typo="Typo.h6" GutterBottom="true">New coupon</MudText>
+                <EditForm Model="@_model" OnValidSubmit="@CreateAsync">
+                    <DataAnnotationsValidator />
+                    <MudStack Spacing="2">
+                        <MudTextField T="string" data-testid="coupon-form-code" Label="Code" @bind-Value="_model.Code" For="@(() => _model.Code)" Variant="Variant.Outlined" />
+                        <MudTextField T="string" data-testid="coupon-form-description" Label="Description" @bind-Value="_model.Description" Variant="Variant.Outlined" />
+                        <MudSelect T="CouponType" data-testid="coupon-form-type" Label="Type" @bind-Value="_model.Type" Variant="Variant.Outlined">
+                            <MudSelectItem T="CouponType" Value="CouponType.Percentage">Percentage</MudSelectItem>
+                            <MudSelectItem T="CouponType" Value="CouponType.FixedAmount">Fixed amount</MudSelectItem>
+                            <MudSelectItem T="CouponType" Value="CouponType.FreeShipping">Free shipping</MudSelectItem>
+                        </MudSelect>
+                        @if (_model.Type != CouponType.FreeShipping)
+                        {
+                            <MudNumericField T="decimal" data-testid="coupon-form-value" Label="@(_model.Type == CouponType.Percentage ? "Percent off" : "Amount off")" @bind-Value="_model.Value" Min="0m" Variant="Variant.Outlined" />
+                        }
+                        <MudNumericField T="decimal" data-testid="coupon-form-min-subtotal" Label="Minimum subtotal" @bind-Value="_model.MinSubtotal" Min="0m" Variant="Variant.Outlined" />
+                        <MudNumericField T="int?" data-testid="coupon-form-max-redemptions" Label="Max. redemptions (optional)" @bind-Value="_model.MaxRedemptions" Min="1" Variant="Variant.Outlined" />
+                        <MudDatePicker data-testid="coupon-form-expires" Label="Expires (optional)" @bind-Date="_model.ExpiresOn" Variant="Variant.Outlined" Clearable="true" />
+                        <ValidationSummary />
+                        @if (_error is not null)
+                        {
+                            <MudAlert data-testid="coupon-form-error" Severity="Severity.Error">@_error</MudAlert>
+                        }
+                        <MudButton data-testid="coupon-form-save" ButtonType="ButtonType.Submit" Color="Color.Primary" Variant="Variant.Filled">Create coupon</MudButton>
+                    </MudStack>
+                </EditForm>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+</div>

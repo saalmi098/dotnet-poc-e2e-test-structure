@@ -1,15 +1,11 @@
 @page "/login"
-@inject IDemoAuthService Auth
-@inject NavigationManager Navigation
+@inherits ShopPageBase
 
-<PageTitle>Demo login - ShopDemo</PageTitle>
-<MudText Typo="Typo.h4" GutterBottom="true">Demo login</MudText>
-<MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mb-4">
-    This is a demonstration-only login. Credentials and login state are public client-side data, not security.
-</MudAlert>
+<PageTitle>Log in - ShopDemo</PageTitle>
+<MudText Typo="Typo.h4" GutterBottom="true">Log in</MudText>
 @if (Auth.CurrentUser is not null)
 {
-    <MudAlert Severity="Severity.Success">You are logged in as @Auth.CurrentUser.Email.</MudAlert>
+    <MudAlert data-testid="login-already" Severity="Severity.Success">You are logged in as @Auth.CurrentUser.Email.</MudAlert>
 }
 else
 {
@@ -37,7 +33,9 @@ else
             </MudStack>
         </EditForm>
         </div>
-        <MudText Typo="Typo.caption" Class="mt-4">Demo credentials are listed in the README and public client configuration.</MudText>
+        <MudText Typo="Typo.body2" Class="mt-4">New here? <MudLink data-testid="login-register-link" Href="@RegisterHref">Create an account</MudLink></MudText>
+        <MudText Typo="Typo.caption" Class="mt-2" data-testid="login-demo-hint">
+            Demo accounts: demo@test.com (shopper), admin@test.com (store manager), jane@test.com (second shopper) – password 1234.
+        </MudText>
     </MudPaper>
 }
-
