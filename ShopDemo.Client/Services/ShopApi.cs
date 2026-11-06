@@ -1,7 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using ShopDemo.Contracts;
+using ShopDemo.Contracts.Catalog;
+using ShopDemo.Contracts.Orders;
 using ShopDemo.Domain;
 
 namespace ShopDemo.Client.Services;

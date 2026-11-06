@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using ShopDemo.Contracts;
+using ShopDemo.Contracts.Catalog;
 using ShopDemo.Domain;
 using ShopDemo.Infrastructure.Data;
 

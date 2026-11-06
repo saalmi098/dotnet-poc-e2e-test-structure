@@ -1,3 +1,6 @@
+using ShopDemo.Contracts.Catalog;
+using ShopDemo.Contracts.Orders;
+
 namespace ShopDemo.Client.Pages;
 
 public partial class OrderHistory

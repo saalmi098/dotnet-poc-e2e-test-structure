@@ -1,3 +1,5 @@
+using ShopDemo.Contracts.Catalog;
+
 namespace ShopDemo.Client.Pages;
 
 public partial class ProductDetails : IDisposable

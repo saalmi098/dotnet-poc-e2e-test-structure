@@ -1,4 +1,4 @@
-using ShopDemo.Contracts;
+using ShopDemo.Contracts.Catalog;
 using ShopDemo.Infrastructure.Services;
 
 namespace ShopDemo.Server.Endpoints;

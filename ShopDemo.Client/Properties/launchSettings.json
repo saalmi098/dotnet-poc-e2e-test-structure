@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "ShopDemo.Client": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:51574;http://localhost:51575"
+    }
+  }
+}

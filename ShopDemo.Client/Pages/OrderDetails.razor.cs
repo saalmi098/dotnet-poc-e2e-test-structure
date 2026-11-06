@@ -1,3 +1,5 @@
+using ShopDemo.Contracts.Orders;
+
 namespace ShopDemo.Client.Pages;
 
 public partial class OrderDetails

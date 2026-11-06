@@ -1,4 +1,4 @@
-using ShopDemo.Contracts;
+using ShopDemo.Contracts.Orders;
 using ShopDemo.Domain;
 using ShopDemo.Infrastructure.Services;
 

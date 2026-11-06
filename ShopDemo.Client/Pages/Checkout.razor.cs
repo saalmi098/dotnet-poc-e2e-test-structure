@@ -1,3 +1,4 @@
+using ShopDemo.Contracts.Orders;
 using System.ComponentModel.DataAnnotations;
 
 namespace ShopDemo.Client.Pages;
