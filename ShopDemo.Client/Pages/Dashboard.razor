@@ -1,0 +1,45 @@
+@page "/manage"
+@inherits ShopPageBase
+
+<PageTitle>Dashboard - ShopDemo</PageTitle>
+<div data-testid="dashboard-page">
+<MudText Typo="Typo.h4" GutterBottom="true">Store dashboard</MudText>
+@if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading dashboard...</MudText></div>
+}
+else if (_error is not null)
+{
+    <MudAlert data-testid="dashboard-error" Severity="Severity.Error">@_error</MudAlert>
+}
+else if (_dashboard is not null)
+{
+    <MudGrid Spacing="3">
+        <MudItem xs="6" md="3"><div class="stat-tile"><MudText Typo="Typo.caption">Orders</MudText><MudText data-testid="dashboard-total-orders" Typo="Typo.h4">@_dashboard.TotalOrders</MudText></div></MudItem>
+        <MudItem xs="6" md="3"><div class="stat-tile"><MudText Typo="Typo.caption">Open orders</MudText><MudText data-testid="dashboard-open-orders" Typo="Typo.h4">@_dashboard.OpenOrders</MudText></div></MudItem>
+        <MudItem xs="6" md="3"><div class="stat-tile"><MudText Typo="Typo.caption">Revenue (excl. cancelled)</MudText><MudText data-testid="dashboard-revenue" Typo="Typo.h4">@_dashboard.Revenue.ToMoney()</MudText></div></MudItem>
+        <MudItem xs="6" md="3"><div class="stat-tile"><MudText Typo="Typo.caption">Customers</MudText><MudText data-testid="dashboard-customers" Typo="Typo.h4">@_dashboard.CustomerCount</MudText></div></MudItem>
+        <MudItem xs="6" md="3"><div class="stat-tile"><MudText Typo="Typo.caption">Active products</MudText><MudText data-testid="dashboard-products" Typo="Typo.h4">@_dashboard.ProductCount</MudText></div></MudItem>
+        <MudItem xs="6" md="3"><div class="stat-tile"><MudText Typo="Typo.caption">Low stock (≤ @AdminLowStockThreshold)</MudText><MudText data-testid="dashboard-low-stock" Typo="Typo.h4">@_dashboard.LowStockCount</MudText></div></MudItem>
+        <MudItem xs="6" md="3"><div class="stat-tile"><MudText Typo="Typo.caption">Out of stock</MudText><MudText data-testid="dashboard-out-of-stock" Typo="Typo.h4">@_dashboard.OutOfStockCount</MudText></div></MudItem>
+    </MudGrid>
+
+    <MudText Typo="Typo.h6" Class="mt-6" GutterBottom="true">Products that need restocking</MudText>
+    @if (_dashboard.LowStockProducts.Count == 0)
+    {
+        <MudAlert data-testid="dashboard-no-low-stock" Severity="Severity.Success">All products are well stocked.</MudAlert>
+    }
+    else
+    {
+        <MudPaper Class="pa-3" data-testid="dashboard-low-stock-list">
+            @foreach (var product in _dashboard.LowStockProducts)
+            {
+                <div class="summary-row" data-testid="@($"dashboard-low-stock-{product.Id}")">
+                    <MudLink Href="/manage/inventory">@product.Name</MudLink>
+                    <span>@(product.Stock == 0 ? "Out of stock" : $"{product.Stock} left")</span>
+                </div>
+            }
+        </MudPaper>
+    }
+}
+</div>

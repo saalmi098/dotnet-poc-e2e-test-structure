@@ -1,32 +1,63 @@
 @page "/"
-@inject IProductCatalog Catalog
-@inject ICartService Cart
-@inject ISnackbar Snackbar
-@inject IDemoAuthService Auth
+@using ShopDemo.Contracts.Catalog
+@inherits ShopPageBase
 
 <PageTitle>Catalog - ShopDemo</PageTitle>
 <div data-testid="catalog-page">
 <MudStack Spacing="2" Class="mb-5">
     <MudText Typo="Typo.h4" GutterBottom="true">Browse the catalog</MudText>
+    <div class="filter-bar" data-testid="catalog-filters">
     <MudGrid>
-        <MudItem xs="12" sm="7">
+        <MudItem xs="12" sm="6">
             <MudTextField @bind-Value="_searchText"
+                          @bind-Value:after="OnFilterChangedAsync"
                           data-testid="catalog-search"
                           Label="Search products"
                           Variant="Variant.Outlined"
                           Immediate="true"
+                          DebounceInterval="300"
                           Clearable="true" />
         </MudItem>
-        <MudItem xs="12" sm="5">
-            <MudSelect T="string" @bind-Value="_selectedCategory" data-testid="catalog-category" Label="Category" Variant="Variant.Outlined">
+        <MudItem xs="12" sm="3">
+            <MudSelect T="string" @bind-Value="_selectedCategory" @bind-Value:after="OnFilterChangedAsync" data-testid="catalog-category" Label="Category" Variant="Variant.Outlined">
                 <MudSelectItem T="string" Value="@string.Empty">All categories</MudSelectItem>
                 @foreach (var category in _categories)
                 {
-                    <MudSelectItem T="string" Value="@category">@category</MudSelectItem>
+                    <MudSelectItem T="string" Value="@category.Name">@category.Name</MudSelectItem>
                 }
             </MudSelect>
         </MudItem>
+        <MudItem xs="12" sm="3">
+            <MudSelect T="ProductSort" @bind-Value="_sort" @bind-Value:after="OnFilterChangedAsync" data-testid="catalog-sort" Label="Sort by" Variant="Variant.Outlined">
+                <MudSelectItem T="ProductSort" Value="ProductSort.Featured">Featured</MudSelectItem>
+                <MudSelectItem T="ProductSort" Value="ProductSort.PriceAscending">Price: low to high</MudSelectItem>
+                <MudSelectItem T="ProductSort" Value="ProductSort.PriceDescending">Price: high to low</MudSelectItem>
+                <MudSelectItem T="ProductSort" Value="ProductSort.NameAscending">Name</MudSelectItem>
+                <MudSelectItem T="ProductSort" Value="ProductSort.TopRated">Top rated</MudSelectItem>
+                <MudSelectItem T="ProductSort" Value="ProductSort.Newest">Newest</MudSelectItem>
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="6" sm="2">
+            <MudNumericField T="decimal?" @bind-Value="_minPrice" @bind-Value:after="OnFilterChangedAsync" data-testid="catalog-min-price" Label="Min price" Min="0m" Variant="Variant.Outlined" Immediate="true" DebounceInterval="400" HideSpinButtons="true" />
+        </MudItem>
+        <MudItem xs="6" sm="2">
+            <MudNumericField T="decimal?" @bind-Value="_maxPrice" @bind-Value:after="OnFilterChangedAsync" data-testid="catalog-max-price" Label="Max price" Min="0m" Variant="Variant.Outlined" Immediate="true" DebounceInterval="400" HideSpinButtons="true" />
+        </MudItem>
+        <MudItem xs="6" sm="2" Class="d-flex align-center">
+            <MudSwitch T="bool" @bind-Value="_inStockOnly" @bind-Value:after="OnFilterChangedAsync" data-testid="catalog-in-stock" Label="In stock" Color="Color.Primary" />
+        </MudItem>
+        <MudItem xs="6" sm="2" Class="d-flex align-center">
+            <MudSwitch T="bool" @bind-Value="_onSaleOnly" @bind-Value:after="OnFilterChangedAsync" data-testid="catalog-on-sale" Label="On sale" Color="Color.Primary" />
+        </MudItem>
+        <MudItem xs="12" sm="4" Class="d-flex align-center justify-end">
+            <MudButton data-testid="catalog-clear-filters" Variant="Variant.Text" OnClick="@ClearFiltersAsync" Disabled="@(!HasFilters)">Clear filters</MudButton>
+        </MudItem>
     </MudGrid>
+    </div>
+    @if (_result is not null)
+    {
+        <MudText data-testid="catalog-result-count" Typo="Typo.body2" Color="Color.Secondary">@_result.TotalCount product(s) found</MudText>
+    }
 </MudStack>
 
 @if (_loading)
@@ -35,26 +66,41 @@
 }
 else if (_error is not null)
 {
-    <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">@_error</MudAlert>
+    <MudAlert data-testid="catalog-error" Severity="Severity.Error" Variant="Variant.Outlined">@_error</MudAlert>
 }
-else if (!FilteredProducts.Any())
+else if (_result is null || _result.Items.Count == 0)
 {
-    <MudAlert Severity="Severity.Info">No products match your search.</MudAlert>
+    <MudAlert data-testid="catalog-empty" Severity="Severity.Info">No products match your search.</MudAlert>
 }
 else
 {
     <MudGrid Spacing="3">
-        @foreach (var product in FilteredProducts)
+        @foreach (var product in _result.Items)
         {
             <MudItem xs="12" sm="6" md="4" @key="product.Id">
-                <article aria-label="@product.Name" data-testid="@($"product-card-{product.Id}")">
+                <article class="product-card-wrapper" aria-label="@product.Name" data-testid="@($"product-card-{product.Id}")">
                     <MudCard Class="product-card">
+                        @if (product.IsOnSale)
+                        {
+                            <MudChip T="string" data-testid="@($"product-sale-badge-{product.Id}")" Class="sale-badge" Size="Size.Small" Color="Color.Error">Sale</MudChip>
+                        }
                         <MudCardMedia Image="@product.ImageUrl" Height="190" />
                         <MudCardContent>
                             <MudChip T="string" Size="Size.Small" Color="Color.Secondary" Variant="Variant.Outlined">@product.Category</MudChip>
                             <MudText Typo="Typo.h6" Class="mt-2">@product.Name</MudText>
+                            <RatingStars TestId="@($"product-rating-{product.Id}")" Value="@product.AverageRating" Count="@product.ReviewCount" />
                             <MudText Typo="Typo.body2" Class="product-description">@product.Description</MudText>
-                            <MudText Typo="Typo.h6" Color="Color.Primary" Class="mt-3">@product.Price.ToString("C")</MudText>
+                            <MudText data-testid="@($"product-price-{product.Id}")" Typo="Typo.h6" Color="Color.Primary" Class="mt-3">
+                                @if (product.IsOnSale)
+                                {
+                                    <span class="price-original" data-testid="@($"product-original-price-{product.Id}")">@product.OriginalPrice.ToMoney()</span>
+                                    <span class="price-sale">@product.Price.ToMoney()</span>
+                                }
+                                else
+                                {
+                                    @product.Price.ToMoney()
+                                }
+                            </MudText>
                             @if (product.IsAvailable)
                             {
                                 <MudText data-testid="@($"product-stock-{product.Id}")" Typo="Typo.caption" Color="Color.Success">@product.Stock in stock</MudText>
@@ -69,8 +115,17 @@ else
                                        data-testid="@($"product-details-{product.Id}")"
                                        Variant="Variant.Text"
                                        Color="Color.Primary">Details</MudButton>
+                            @if (!Auth.IsManager)
+                            {
+                                <MudIconButton data-testid="@($"product-wishlist-{product.Id}")"
+                                               Icon="@(product.IsInWishlist ? Icons.Material.Filled.Favorite : Icons.Material.Filled.FavoriteBorder)"
+                                               Color="@(product.IsInWishlist ? Color.Error : Color.Default)"
+                                               aria-label="@(product.IsInWishlist ? $"Remove {product.Name} from wishlist" : $"Add {product.Name} to wishlist")"
+                                               aria-pressed="@(product.IsInWishlist ? "true" : "false")"
+                                               OnClick="@(() => ToggleWishlistAsync(product))" />
+                            }
                             <MudSpacer />
-                            @if (Auth.CurrentUser?.Role != DemoRole.StoreManager)
+                            @if (!Auth.IsManager)
                             {
                                 <MudButton Disabled="@(!product.IsAvailable)"
                                            data-testid="@($"product-add-{product.Id}")"
@@ -84,5 +139,11 @@ else
             </MudItem>
         }
     </MudGrid>
+    @if (_result.TotalPages > 1)
+    {
+        <div data-testid="catalog-pagination" class="d-flex justify-center mt-6">
+            <MudPagination Count="@_result.TotalPages" Selected="@_page" SelectedChanged="@OnPageChangedAsync" ShowFirstButton="true" ShowLastButton="true" />
+        </div>
+    }
 }
 </div>

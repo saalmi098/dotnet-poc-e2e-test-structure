@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.14" />
+    <ProjectReference Include="..\ShopDemo.Client\ShopDemo.Client.csproj" />
+    <ProjectReference Include="..\ShopDemo.Infrastructure\ShopDemo.Infrastructure.csproj" />
+    <ProjectReference Include="..\ShopDemo.Contracts\ShopDemo.Contracts.csproj" />
+    <ProjectReference Include="..\ShopDemo.Domain\ShopDemo.Domain.csproj" />
+  </ItemGroup>
+</Project>

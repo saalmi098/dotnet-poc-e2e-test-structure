@@ -59,7 +59,7 @@ public sealed class ManagerRestocksShopperOrdersTests : ShopDemoPageTest
         await Page.GetByTestId("nav-logout-desktop").WaitForAsync();
         await Page.GetByTestId("nav-orders-desktop").ClickAsync();
 
-        Assert.True(await Page.GetByTestId($"order-card-{orderNumber}").CountAsync() > 0);
+        Assert.True(await Page.GetByTestId($"order-card-{orderNumber}").IsEventuallyVisibleAsync());
     }
 
     [Fact]
@@ -97,7 +97,7 @@ public sealed class ManagerRestocksShopperOrdersTests : ShopDemoPageTest
 
         await Page.GetByTestId("nav-orders-desktop").ClickAsync();
 
-        Assert.True(await Page.GetByTestId($"order-card-{orderNumber}").CountAsync() > 0);
+        Assert.True(await Page.GetByTestId($"order-card-{orderNumber}").IsEventuallyVisibleAsync());
     }
 
     [Fact]

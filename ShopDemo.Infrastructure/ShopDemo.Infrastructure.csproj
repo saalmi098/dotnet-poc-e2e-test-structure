@@ -5,7 +5,10 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ShopDemo.Application\ShopDemo.Application.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <ProjectReference Include="..\ShopDemo.Domain\ShopDemo.Domain.csproj" />
+    <ProjectReference Include="..\ShopDemo.Contracts\ShopDemo.Contracts.csproj" />
   </ItemGroup>
 </Project>

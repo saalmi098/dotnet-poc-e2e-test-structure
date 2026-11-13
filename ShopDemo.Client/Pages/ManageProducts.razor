@@ -1,0 +1,54 @@
+@page "/manage/products"
+@inherits ShopPageBase
+
+<PageTitle>Manage products - ShopDemo</PageTitle>
+<div data-testid="manage-products-page">
+<MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-3">
+    <MudText Typo="Typo.h4">Manage products</MudText>
+    <MudButton data-testid="product-create" Href="/manage/products/new" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add">New product</MudButton>
+</MudStack>
+@if (_loading)
+{
+    <div class="loading-state"><MudProgressCircular Indeterminate="true" Color="Color.Primary" /><MudText>Loading products...</MudText></div>
+}
+else if (_error is not null)
+{
+    <MudAlert data-testid="manage-products-error" Severity="Severity.Error">@_error</MudAlert>
+}
+else
+{
+    <MudTextField T="string" data-testid="manage-products-filter" Label="Filter by name or id" Variant="Variant.Outlined" @bind-Value="_filter" Immediate="true" Clearable="true" Class="mb-3" />
+    <MudSimpleTable Dense="true" Hover="true" Striped="true" data-testid="manage-products-table">
+        <thead>
+            <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var product in FilteredProducts)
+            {
+                <tr data-testid="@($"product-row-{product.Id}")" @key="product.Id">
+                    <td><strong>@product.Name</strong><br /><MudText Typo="Typo.caption">@product.Id</MudText></td>
+                    <td>@product.Category</td>
+                    <td>@product.Price.ToMoney()@(product.OriginalPrice is { } original ? $" (was {original.ToMoney()})" : "")</td>
+                    <td data-testid="@($"product-row-stock-{product.Id}")">@product.Stock</td>
+                    <td data-testid="@($"product-row-status-{product.Id}")">@(product.IsActive ? "Active" : "Inactive")</td>
+                    <td class="text-right">
+                        <MudIconButton data-testid="@($"product-edit-{product.Id}")" Href="@($"/manage/products/{product.Id}")" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" aria-label="@($"Edit {product.Name}")" />
+                        <MudIconButton data-testid="@($"product-delete-{product.Id}")" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" aria-label="@($"Delete {product.Name}")" OnClick="@(() => ConfirmDelete(product))" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+
+    @if (_deleting is not null)
+    {
+        <MudAlert data-testid="product-delete-panel" Severity="Severity.Warning" Class="mt-4">
+            Delete <strong>@_deleting.Name</strong>? Products that appear in orders are only deactivated.
+            <MudStack Row="true" Class="mt-2">
+                <MudButton data-testid="product-delete-confirm" Color="Color.Error" Variant="Variant.Filled" OnClick="@DeleteAsync">Delete</MudButton>
+                <MudButton data-testid="product-delete-abort" Variant="Variant.Text" OnClick="@(() => _deleting = null)">Cancel</MudButton>
+            </MudStack>
+        </MudAlert>
+    }
+}
+</div>

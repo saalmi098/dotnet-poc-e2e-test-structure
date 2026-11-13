@@ -1,0 +1,12 @@
+<span class="rating-stars" data-testid="@TestId" aria-label="@Label">
+    <MudRating ReadOnly="true" Size="Size.Small" SelectedValue="@((int)Math.Round(Value, MidpointRounding.AwayFromZero))" MaxValue="5" />
+    <MudText Typo="Typo.caption" Component="span">@(Count == 0 ? "No reviews yet" : $"{Value.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)} ({Count})")</MudText>
+</span>
+
+@code {
+    [Parameter] public double Value { get; set; }
+    [Parameter] public int Count { get; set; }
+    [Parameter] public string? TestId { get; set; }
+
+    private string Label => Count == 0 ? "No reviews yet" : $"Rated {Value.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)} out of 5 from {Count} reviews";
+}

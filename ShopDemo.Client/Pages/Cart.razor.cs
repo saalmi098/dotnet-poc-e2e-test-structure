@@ -1,29 +1,50 @@
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using ShopDemo.Application.Interfaces;
-
 namespace ShopDemo.Client.Pages;
 
 public partial class Cart
 {
-    [Inject]
-    private IDemoAuthService Auth { get; set; } = default!;
+    private CartDto _cart = new([], 0, null, 0, 0, 0, 0, 0, ShippingMethod.Standard, 0);
+    private bool _loading = true;
+    private string? _couponCode;
+    private string? _couponError;
 
     private string CheckoutHref => Auth.CurrentUser is null
         ? "/login?returnUrl=%2Fcheckout"
         : "/checkout";
 
-    private async Task UpdateQuantityAsync(string productId, int quantity)
+    protected override async Task OnInitializedAsync()
     {
+        Basket.Changed += OnCartChanged;
+        await TryAsync(async () => _cart = await Basket.RefreshAsync());
+        _loading = false;
+    }
+
+    private void OnCartChanged()
+    {
+        _cart = Basket.Cart;
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateQuantityAsync(string productId, int quantity) =>
+        await TryAsync(() => Basket.SetQuantityAsync(productId, quantity));
+
+    private async Task RemoveProduct(string productId) => await TryAsync(() => Basket.RemoveAsync(productId));
+
+    private async Task ApplyCouponAsync()
+    {
+        _couponError = null;
         try
         {
-            await CartService.SetQuantityAsync(productId, quantity);
+            await Basket.ApplyCouponAsync(_couponCode ?? string.Empty);
+            _couponCode = null;
+            Snackbar.Add("Coupon applied.", Severity.Success);
         }
-        catch (Exception exception)
+        catch (ApiException exception)
         {
-            Snackbar.Add(exception.Message, Severity.Error);
+            _couponError = exception.Message;
         }
     }
 
-    private void RemoveProduct(string productId) => CartService.RemoveProduct(productId);
+    private async Task RemoveCouponAsync() => await TryAsync(Basket.RemoveCouponAsync);
+
+    public void Dispose() => Basket.Changed -= OnCartChanged;
 }

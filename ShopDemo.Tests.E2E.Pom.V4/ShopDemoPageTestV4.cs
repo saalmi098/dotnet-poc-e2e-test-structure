@@ -19,6 +19,12 @@ public abstract class ShopDemoPageTestV4 : PageTest
     protected Task<T> CreatePageObject<T>(ILocator? baseLocator = null) where T : PageObject
         => PageObjectFactory.Create<T>(Page, baseLocator);
 
+    public override async ValueTask InitializeAsync()
+    {
+        await TestDatabase.ResetAsync();
+        await base.InitializeAsync();
+    }
+
     public override BrowserNewContextOptions ContextOptions() => new()
     {
         BaseURL = E2ETestSettings.BaseUrl,

@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
-using ShopDemo.Application;
-using ShopDemo.Application.Interfaces;
 using ShopDemo.Client;
-using ShopDemo.Infrastructure;
+using ShopDemo.Client.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -12,13 +10,21 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddMudServices();
-builder.Services.AddScoped<JsonProductCatalog>();
-builder.Services.AddScoped<IProductCatalog>(services => services.GetRequiredService<JsonProductCatalog>());
-builder.Services.AddScoped<IInventoryCatalog>(services => services.GetRequiredService<JsonProductCatalog>());
-builder.Services.AddScoped<IDemoAuthService, DemoAuthService>();
-builder.Services.AddScoped<ICartService, InMemoryCartService>();
-builder.Services.AddScoped<IOrderStore, InMemoryOrderStore>();
-builder.Services.AddScoped<ICheckoutService, CheckoutService>();
-builder.Services.AddScoped<IInventoryManagementService, InventoryManagementService>();
+builder.Services.AddScoped<ShopApi>();
+builder.Services.AddScoped<AuthState>();
+builder.Services.AddScoped<CartState>();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+// Restore the session cookie's user and the cart badge before the first render.
+await host.Services.GetRequiredService<AuthState>().InitializeAsync();
+try
+{
+    await host.Services.GetRequiredService<CartState>().RefreshAsync();
+}
+catch (ApiException)
+{
+    // The header shows an empty cart; the pages report API problems themselves.
+}
+
+await host.RunAsync();
